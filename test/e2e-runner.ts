@@ -18,7 +18,11 @@ function shutDown(exitCode: number) {
     process.exit(exitCode);
 }
 
-const bundlessServer = bundless(project.getPath());
+const bundlessServer = bundless({
+    rootDir: project.getPath(),
+    baseUrl: '/modules/',
+    srcDir: 'dist'
+});
 bundlessServer.listen(port, host, err => {
     if(err) {
         throw err;

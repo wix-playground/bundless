@@ -8,12 +8,17 @@ import {ServerResponse} from "http";
 import stream = require('stream');
 import {Readable} from "stream";
 import {Writable} from "stream";
+import {getProjectMap, ProjectMap} from './project-mapper';
 
-const predefinedRoutes = {
+
+interface RouteHandler {
+    (res: ServerResponse, projectMap: ProjectMap): void;
+}
+
+const predefinedRoutes: { [url: string]: RouteHandler } = {
     '/$system': serveSystem
 };
 
-const projectMap = '{}';
 
 function serveFile(res: ServerResponse, filePath: string) {
     res.writeHead(200, {
@@ -27,12 +32,9 @@ function send404(res: ServerResponse) {
     res.end('');
 }
 
-function resolveUrlToFile(rootDir: string, url: string): string {
-    if(url in predefinedRoutes) {
-        return predefinedRoutes[url];
-    } else {
-        return path.resolve(rootDir, url.slice(1));    
-    }
+function resolveUrlToFile(topology: Topology, url: string): string {
+    const filePath: string = url.slice(topology.baseUrl.length);
+    return path.resolve(topology.rootDir, topology.srcDir, filePath);
 }
 
 function streamSystemModule(moduleId): Readable {
@@ -56,14 +58,16 @@ function seqStreams(inputStreams: Array<Readable | string>, outputStream: Writab
     }
 }
 
-function serveSystem(res: ServerResponse) {
+function serveSystem(res: ServerResponse, projectMap: ProjectMap) {
     res.writeHead(200, {
         'Content-type': 'application/javascript'
     });
     seqStreams([
         streamSystemModule('systemjs/dist/system.js'),
-        'var projectMap = {};\n\n',
-        'var locator = '+ projectMap + ';\n\n',
+        'var projectMap = ',
+        projectMap.serialize(),
+        ';\n\n',
+        'var locator = {};\n\n',
         '(function (exports){',
         streamSystemModule('./locator'),
         '\n\n})(locator);\n\n',
@@ -71,13 +75,21 @@ function serveSystem(res: ServerResponse) {
     ], res);
 }
 
-export default function bundless(projectRootDir: string): Server {
+export interface Topology {
+    rootDir: string;
+    baseUrl: string;
+    srcDir: string;
+}
+
+export default function bundless(topology: Topology): Server {
     const config = spdyKeys;
-    return spdy.createServer(config, (req: ServerRequest, res: ServerResponse) => {
+    let projectMap;
+    return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
+        projectMap = projectMap ||  getProjectMap(topology.rootDir, `https://${this.address().address}:${this.address().port}${topology.baseUrl}`);
         if(req.url in predefinedRoutes) {
-            predefinedRoutes[req.url](res)
+            predefinedRoutes[req.url](res, projectMap);
         } else {
-            const filePath: string = resolveUrlToFile(projectRootDir, req.url);
+            const filePath: string = resolveUrlToFile(topology, req.url);
             try {
                 serveFile(res, filePath);
             } catch (err) {
@@ -88,7 +100,12 @@ export default function bundless(projectRootDir: string): Server {
 }
 
 if(require.main === module) {
-    bundless(process.cwd()).listen(3000, function () {
+    const topology = {
+        rootDir: process.cwd(),
+        baseUrl: '/modules/',
+        srcDir: 'dist'
+    };
+    bundless(topology).listen(3000, function () {
         console.log(`${this.address().address}:${this.address().port}`);
-    })
+    });
 }

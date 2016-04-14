@@ -1,7 +1,7 @@
 import fs = require('fs-extra');
 import path = require('path');
 
-class PackageBuilder {
+export class PackageBuilder {
     constructor(private name: string, private rootDir: string) {
         const packageJson = {
             name
