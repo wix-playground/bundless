@@ -1,4 +1,3 @@
-import {expect, assert} from 'chai';
 import bundless from '../src';
 
 import {Server, runner} from 'karma';
