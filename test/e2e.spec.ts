@@ -18,7 +18,7 @@ describe('e2e test', function () {
         return loadSystem()
              .then(() => {
                  System.config({
-                     baseURL: 'https://127.0.0.1:3000/',
+                     baseURL: 'https://127.0.0.1:3000/dist',
                      meta: {
                          'scriptLoad': true
                      }

@@ -1,16 +1,22 @@
 import bundless from '../src';
 import projectDriver from '../test-kit/project-driver';
 import tmp = require('tmp');
+import {SynchrounousResult} from "tmp";
 
 const Server = require('karma').Server;
 
 const host = '127.0.0.1';
 const port = 3000;
 
-const tempDir = tmp.dirSync().name;
+const tempDir: SynchrounousResult = tmp.dirSync();
+const project = projectDriver(tempDir.name)
+    .addMainFile('dist/main.js', '');
 
-const project = projectDriver(tempDir)
-    .addMainFile('main.js', '');
+function shutDown(exitCode: number) {
+    project.dispose();
+    tempDir.removeCallback();
+    process.exit(exitCode);
+}
 
 const bundlessServer = bundless(project.getPath());
 bundlessServer.listen(port, host, err => {
@@ -21,9 +27,7 @@ bundlessServer.listen(port, host, err => {
             port: 9876,
             configFile: process.cwd() + '/karma.conf.js',
             singleRun: true
-        }, exitCode => {
-            process.exit(exitCode);
-        });
+        }, exitCode => shutDown(exitCode));
         server.start();
     }
 });

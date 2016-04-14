@@ -19,13 +19,22 @@ function send404(res: ServerResponse) {
     res.end('');
 }
 
+function resolveUrlToFile(rootDir: string, url: string): string {
+    return path.resolve(rootDir, url.slice(1));
+}
+
 export default function bundless(projectRootDir: string): Server {
     const config = spdyKeys;
     return spdy.createServer(config, (req: ServerRequest, res: ServerResponse) => {
         if(req.url in predefinedRoutes) {
             serveFile(res, predefinedRoutes[req.url]);
         } else {
-            send404(res);
+            const filePath: string = resolveUrlToFile(projectRootDir, req.url);
+            try {
+                serveFile(res, filePath);
+            } catch (err) {
+                send404(res);
+            }
         }
     });
 }
