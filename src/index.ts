@@ -9,16 +9,22 @@ import stream = require('stream');
 import {Readable} from "stream";
 import {Writable} from "stream";
 import {getProjectMap, ProjectMap} from './project-mapper';
+import {Topology, Serializable} from "./types";
 
 
-interface RouteHandler {
-    (res: ServerResponse, projectMap: ProjectMap): void;
+
+
+
+function getLoaderConfig(topology: Topology, server: Server): Object & Serializable {
+    const baseURL = `https://${server.address().address}:${server.address().port}${topology.baseUrl}`;
+    return {
+        baseURL,
+        defaultJSExtensions: true,
+        serialize: function () {
+            return JSON.stringify(this);
+        }
+    }
 }
-
-const predefinedRoutes: { [url: string]: RouteHandler } = {
-    '/$system': serveSystem
-};
-
 
 function serveFile(res: ServerResponse, filePath: string) {
     res.writeHead(200, {
@@ -58,7 +64,7 @@ function seqStreams(inputStreams: Array<Readable | string>, outputStream: Writab
     }
 }
 
-function serveSystem(res: ServerResponse, projectMap: ProjectMap) {
+function serveSystem(res: ServerResponse, projectMap: Serializable, loaderConfig: Serializable) {
     res.writeHead(200, {
         'Content-type': 'application/javascript'
     });
@@ -71,23 +77,20 @@ function serveSystem(res: ServerResponse, projectMap: ProjectMap) {
         '(function (exports){',
         streamSystemModule('./locator'),
         '\n\n})(locator);\n\n',
+        'System.config(', loaderConfig.serialize(), ')\n\n',
         streamSystemModule('./loader-bootstrap')
     ], res);
 }
 
-export interface Topology {
-    rootDir: string;
-    baseUrl: string;
-    srcDir: string;
-}
 
 export default function bundless(topology: Topology): Server {
     const config = spdyKeys;
-    let projectMap;
+    let loaderConfig: Serializable;
+    const projectMap: Serializable = getProjectMap(topology.rootDir);
     return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
-        projectMap = projectMap ||  getProjectMap(topology.rootDir, `https://${this.address().address}:${this.address().port}${topology.baseUrl}`);
-        if(req.url in predefinedRoutes) {
-            predefinedRoutes[req.url](res, projectMap);
+        if(req.url === '/$system') {
+            loaderConfig = loaderConfig || getLoaderConfig(topology, this);
+            serveSystem(res, projectMap, loaderConfig);
         } else {
             const filePath: string = resolveUrlToFile(topology, req.url);
             try {
