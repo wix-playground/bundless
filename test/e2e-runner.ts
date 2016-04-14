@@ -1,11 +1,19 @@
 import bundless from '../src';
+import projectDriver from '../test-kit/project-driver';
+import tmp = require('tmp');
 
 const Server = require('karma').Server;
 
 const host = '127.0.0.1';
 const port = 3000;
 
-bundless().listen(port, host, err => {
+const tempDir = tmp.dirSync().name;
+
+const project = projectDriver(tempDir)
+    .addMainFile('main.js', '');
+
+const bundlessServer = bundless(project.getPath());
+bundlessServer.listen(port, host, err => {
     if(err) {
         throw err;
     } else {

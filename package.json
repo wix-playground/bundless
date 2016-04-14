@@ -28,6 +28,7 @@
   "homepage": "https://github.com/wix/bundless",
   "devDependencies": {
     "chai": "3.5.0",
+    "fs-extra": "^0.26.7",
     "karma": "0.13.22",
     "karma-chrome-launcher": "0.2.3",
     "karma-mocha": "0.2.2",
@@ -36,6 +37,7 @@
     "mocha-env-reporter": "1.0.2",
     "mocha-loader": "0.7.1",
     "source-map-support": "0.4.0",
+    "tmp": "0.0.28",
     "typescript": "1.8.9",
     "typings": "0.7.12"
   },

@@ -14,11 +14,18 @@ function serveFile(res: ServerResponse, filePath: string) {
     fs.createReadStream(filePath).pipe(res);
 }
 
-export default function bundless(): Server {
+function send404(res: ServerResponse) {
+    res.writeHead(404);
+    res.end('');
+}
+
+export default function bundless(projectRootDir: string): Server {
     const config = spdyKeys;
     return spdy.createServer(config, (req: ServerRequest, res: ServerResponse) => {
         if(req.url in predefinedRoutes) {
             serveFile(res, predefinedRoutes[req.url]);
+        } else {
+            send404(res);
         }
     });
 }
