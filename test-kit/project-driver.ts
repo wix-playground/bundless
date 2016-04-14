@@ -22,6 +22,11 @@ export class PackageBuilder {
         return this;
     }
 
+    addPackage(name: string): PackageBuilder {
+        const newPath: string = path.resolve(this.rootDir, 'node_modules', name);
+        return new PackageBuilder(name, newPath);
+    }
+
     getPath(): string {
         return this.rootDir;
     }

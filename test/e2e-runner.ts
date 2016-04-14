@@ -10,8 +10,17 @@ const port = 3000;
 
 const tempDir: SynchrounousResult = tmp.dirSync();
 const project = projectDriver(tempDir.name)
-    .addMainFile('dist/main.js', 'var a = require("./a");')
+    .addMainFile('dist/main.js',`
+        var a = require("./a");
+        var x = require("pkgX");  
+     `)
     .addFile('dist/a.js', '');
+
+const pkgX = project.addPackage('pkgX')
+    .addMainFile('x.js', '');
+
+    
+    
 
 function shutDown(exitCode: number) {
     project.dispose();
