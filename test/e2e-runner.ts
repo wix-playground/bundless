@@ -17,7 +17,8 @@ const project = projectDriver(tempDir.name)
     .addFile('dist/a.js', '');
 
 const pkgX = project.addPackage('pkgX')
-    .addMainFile('x.js', '');
+    .addMainFile('x.js', 'var y = require("pkgY");')
+    .addPackage('pkgY').addMainFile('y.js', '');
 
     
     

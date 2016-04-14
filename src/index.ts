@@ -11,10 +11,6 @@ import {Writable} from "stream";
 import {getProjectMap, ProjectMap} from './project-mapper';
 import {Topology, Serializable} from "./types";
 
-
-
-
-
 function getLoaderConfig(topology: Topology, server: Server): Object & Serializable {
     const baseURL = `https://${server.address().address}:${server.address().port}${topology.baseUrl}`;
     return {
@@ -40,7 +36,11 @@ function send404(res: ServerResponse) {
 
 function resolveUrlToFile(topology: Topology, url: string): string {
     const filePath: string = url.slice(topology.baseUrl.length);
-    return path.resolve(topology.rootDir, topology.srcDir, filePath);
+    if(filePath.slice(0,12) === 'node_modules') {
+        return path.resolve(topology.rootDir, topology.rootDir, filePath);
+    } else {
+        return path.resolve(topology.rootDir, topology.srcDir, filePath);
+    }
 }
 
 function streamSystemModule(moduleId): Readable {
@@ -88,6 +88,7 @@ export default function bundless(topology: Topology): Server {
     let loaderConfig: Serializable;
     const projectMap: Serializable = getProjectMap(topology.rootDir);
     return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
+        console.log('HIT', req.url);
         if(req.url === '/$system') {
             loaderConfig = loaderConfig || getLoaderConfig(topology, this);
             serveSystem(res, projectMap, loaderConfig);

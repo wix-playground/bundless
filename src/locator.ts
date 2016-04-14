@@ -5,6 +5,9 @@ function getExtension(moduleName: string): string {
 
 export function getModuleLocator(projectMap, oldNormalize) {
     return function normalize(name, parentName, parentAddress) {
+        if(name in projectMap.packages) {
+            name = projectMap.packages[name];
+        }
         console.log('::', name, parentName, parentAddress);
         return oldNormalize(name, parentName, parentAddress);
     }
