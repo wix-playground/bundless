@@ -1,0 +1,47 @@
+{
+  "name": "bundless",
+  "version": "0.0.0",
+  "description": "Experimental bundle-free dependency server",
+  "main": "./dist/src/index.js",
+  "author": "Jiri Toisek <jiri@wix.com> (https://github.com/tobich)",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "private": false,
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "clean": "rm -rf dist && mkdir dist",
+    "pretest": "npm run build",
+    "test": "mocha --reporter mocha-env-reporter ./dist/test",
+    "build": "npm run clean && tsc",
+    "prestart": "npm run build",
+    "start": "node dist/src/index.js",
+    "prepublish": "typings installs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wix/bundless"
+  },
+  "bugs": {
+    "url": "https://github.com/wix/bundless/issues"
+  },
+  "homepage": "https://github.com/wix/bundless",
+  "devDependencies": {
+    "chai": "3.5.0",
+    "karma": "0.13.22",
+    "karma-chrome-launcher": "0.2.3",
+    "karma-mocha": "0.2.2",
+    "karma-teamcity-reporter": "0.2.2",
+    "mocha": "2.4.5",
+    "mocha-env-reporter": "1.0.2",
+    "mocha-loader": "0.7.1",
+    "source-map-support": "0.4.0",
+    "typescript": "1.8.9",
+    "typings": "0.7.12"
+  },
+  "dependencies": {
+    "spdy": "3.2.3",
+    "spdy-keys": "0.0.0",
+    "systemjs": "^0.19.26"
+  }
+}
