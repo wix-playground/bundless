@@ -1,6 +1,6 @@
 import bundless from '../src';
 
-import {Server, runner} from 'karma';
+const Server = require('karma').Server;
 
 const host = '127.0.0.1';
 const port = 3000;
@@ -9,7 +9,6 @@ bundless().listen(port, host, err => {
     if(err) {
         throw err;
     } else {
-        console.log('Up and running', this)
         const server = new Server({
             port: 9876,
             configFile: process.cwd() + '/karma.conf.js',

@@ -15,7 +15,7 @@ function serveFile(res: ServerResponse, filePath: string) {
 }
 
 export default function bundless(): Server {
-    const config = Object.assign({}, spdyKeys);
+    const config = spdyKeys;
     return spdy.createServer(config, (req: ServerRequest, res: ServerResponse) => {
         if(req.url in predefinedRoutes) {
             serveFile(res, predefinedRoutes[req.url]);

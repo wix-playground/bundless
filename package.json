@@ -16,7 +16,7 @@
     "build": "npm run clean && tsc",
     "prestart": "npm run build",
     "start": "node dist/src/index.js",
-    "prepublish": "typings installs"
+    "prepublish": "typings install"
   },
   "repository": {
     "type": "git",
