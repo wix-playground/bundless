@@ -31,8 +31,8 @@ function resolvePackage(packagePath: string): string {
     } catch (err) {
         packageJson = {};
     }
-    if(packageJson.main) {
-        return path.resolve(packagePath, packageJson.main);
+    if(packageJson['main']) {
+        return path.resolve(packagePath, packageJson['main']);
     } else {
         return path.resolve(packagePath, 'index.js');
     }
@@ -56,10 +56,10 @@ export interface ProjectMap extends Serializable {
 }
 
 export function getProjectMap(rootDir: string): ProjectMap {
-    const projectMap = {
+    const projectMap: ProjectMap = {
         packages: buildPkgDict(rootDir),
-    }ף
+        serialize: () => projectMapSerialized
+    };
     const projectMapSerialized: string = JSON.stringify(projectMap);
-    projectMap.serialize = () => projectMapSerialized;
     return projectMap;
 }

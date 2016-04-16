@@ -1,5 +1,5 @@
-import bundless from '../src';
-import projectDriver from '../test-kit/project-driver';
+import bundless from '../../src';
+import projectDriver from '../../test-kit/project-driver';
 import tmp = require('tmp');
 import {SynchrounousResult} from "tmp";
 
