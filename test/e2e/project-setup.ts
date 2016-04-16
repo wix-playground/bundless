@@ -8,7 +8,7 @@ export function setupProject(): PackageBuilder {
         .addMainFile('dist/main.js',`
         var a = require("./a");
         var x = require("pkgX");  
-        // var x2 = require("pkgX/sub");  
+        var x2 = require("pkgX/sub");  
      `)
         .addFile('dist/a.js', '');
 

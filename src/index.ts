@@ -10,6 +10,7 @@ import {Readable} from "stream";
 import {Writable} from "stream";
 import {getProjectMap, ProjectMap} from './project-mapper';
 import {Topology, Serializable} from "./types";
+import {log} from "./logger";
 
 function getLoaderConfig(topology: Topology, server: Server): Object & Serializable {
     const baseURL = `https://${server.address().address}:${server.address().port}${topology.baseUrl}`;
@@ -87,8 +88,9 @@ export default function bundless(topology: Topology): Server {
     const config = spdyKeys;
     let loaderConfig: Serializable;
     const projectMap: Serializable = getProjectMap(topology.rootDir);
+    log('project map', projectMap);
     return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
-        console.log('HIT', req.url);
+        log('HIT', req.url);
         if(req.url === '/$system') {
             loaderConfig = loaderConfig || getLoaderConfig(topology, this);
             serveSystem(res, projectMap, loaderConfig);
@@ -110,6 +112,6 @@ if(require.main === module) {
         srcDir: 'dist'
     };
     bundless(topology).listen(3000, function () {
-        console.log(`${this.address().address}:${this.address().port}`);
+        console.log(`Bundless listening at ${this.address().address}:${this.address().port}`);
     });
 }

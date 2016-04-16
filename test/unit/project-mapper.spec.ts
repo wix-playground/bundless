@@ -23,9 +23,9 @@ describe('Project Mapper', function () {
     });
     it('describes packages in project (aggressive flattening)', function () {
         expect(projectMap.packages).to.eql({
-            'foo': 'node_modules/foo/bar/far/f.js',
-            'bar': 'node_modules/bar/do/re/mi/fa.js',
-            'sol': 'node_modules/bar/node_modules/sol/la/si/do.js'
+            'foo': ['node_modules/foo', 'bar/far/f.js'],
+            'bar': ['node_modules/bar', 'do/re/mi/fa.js'],
+            'sol': ['node_modules/bar/node_modules/sol', '/la/si/do.js']
         });
     });
 });

@@ -1,20 +1,35 @@
-function getPackageName(name: string) {
-    const index = name.indexOf('/');
-    if(index === -1) {
-        return name;
-    } else {
-        const packageName = name.slice(0,index-1);
-        return packageName === '.' ? null : packageName;
-    }
+import {ProjectMap, PackageTuple} from "./project-mapper";
+
+function getExt(fileName: string): string {
+    const dotIndex = fileName.lastIndexOf('.');
+    return dotIndex > -1 ? fileName.slice(dotIndex) : '';
 }
 
-export function getModuleLocator(projectMap, oldNormalize) {
-    return function normalize(name, parentName, parentAddress) {
-        console.log('::', name, parentName, parentAddress);
-        const packageName = getPackageName(name);
-        if(packageName && packageName in projectMap.packages) {
-            name = projectMap.packages[name];
+function normalizeTail(name: string): string {
+    const ext = getExt(name);
+    return !!ext ? name : name + '.js';
+}
+
+function normalizePackageName(projectMap: ProjectMap, name: string): string {
+    const segments = name.split('/');
+    const packageName = segments[0];
+    if(packageName === '.') {
+        return null;
+    } else {
+        if(packageName in projectMap.packages) {
+            const realPackagePath: PackageTuple = projectMap.packages[packageName];
+            const tail = segments.length === 1 ? realPackagePath[1] : segments.slice(1).join('/');
+            return realPackagePath[0] + '/' + normalizeTail(tail);
+        } else {
+            return name;
         }
-        return oldNormalize(name, parentName, parentAddress);
+    }
+
+}
+
+export function getModuleLocator(projectMap: ProjectMap, oldNormalize) {
+    return function normalize(name, parentName, parentAddress) {
+        const newName = normalizePackageName(projectMap, name);
+        return oldNormalize(newName || name, parentName, parentAddress);
     }
 }

@@ -24,7 +24,7 @@ function collectRelevantDirs(rootDir: string): string[] {
     return pkgList;
 }
 
-function resolvePackage(packagePath: string): string {
+function resolvePackage(packagePath: string): PackageTuple {
     let packageJson: Object;
     try {
         packageJson = JSON.parse(fs.readFileSync(path.resolve(packagePath, 'package.json')).toString());
@@ -32,9 +32,9 @@ function resolvePackage(packagePath: string): string {
         packageJson = {};
     }
     if(packageJson['main']) {
-        return path.resolve(packagePath, packageJson['main']);
+        return [packagePath, packageJson['main']];
     } else {
-        return path.resolve(packagePath, 'index.js');
+        return [packagePath, 'index.js'];
     }
 
 }
@@ -43,13 +43,15 @@ function buildPkgDict(rootDir: string): PackageDict {
     const pkgList = collectRelevantDirs(path.resolve(rootDir, 'node_modules'));
     const pkgDict: PackageDict = {};
     pkgList.forEach((pkgPath) => {
-        pkgDict[path.basename(pkgPath)] = path.relative(rootDir, resolvePackage(pkgPath));
+        const resolved: PackageTuple = resolvePackage(pkgPath);
+        pkgDict[path.basename(pkgPath)] = [path.relative(rootDir, resolved[0]), resolved[1]];
     });
     return pkgDict;
 }
 
+export type PackageTuple = [string, string];
 
-export type PackageDict = { [pkgName: string]: string };
+export type PackageDict = { [pkgName: string]: PackageTuple };
 
 export interface ProjectMap extends Serializable {
     packages: PackageDict;
