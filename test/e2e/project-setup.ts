@@ -16,9 +16,11 @@ export function setupProject(): PackageBuilder {
         .addMainFile('x.js', `
             var y = require("pkgY");
             var data = require("./data.json");
+            var bar = require("./foo/bar");
          `)
         .addFile('sub.js','')
         .addFile('data.json', '')
+        .addFile('foo/bar/index.js')
         .addPackage('pkgY').addMainFile('y.js', '');
 
 
