@@ -1,14 +1,20 @@
-function getExtension(moduleName: string): string {
-    const index = moduleName.lastIndexOf('.');
-    return index > -1 ? moduleName.slice(index) : '';
+function getPackageName(name: string) {
+    const index = name.indexOf('/');
+    if(index === -1) {
+        return name;
+    } else {
+        const packageName = name.slice(0,index-1);
+        return packageName === '.' ? null : packageName;
+    }
 }
 
 export function getModuleLocator(projectMap, oldNormalize) {
     return function normalize(name, parentName, parentAddress) {
-        if(name in projectMap.packages) {
+        console.log('::', name, parentName, parentAddress);
+        const packageName = getPackageName(name);
+        if(packageName && packageName in projectMap.packages) {
             name = projectMap.packages[name];
         }
-        console.log('::', name, parentName, parentAddress);
         return oldNormalize(name, parentName, parentAddress);
     }
 }
