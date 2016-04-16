@@ -10,7 +10,7 @@ function normalizeTail(name: string): string {
     return !!ext ? name : name + '.js';
 }
 
-function normalizePackageName(projectMap: ProjectMap, name: string): string {
+export function preProcess(projectMap: ProjectMap, name: string, parentName?: string, parentAddress?: string): string {
     const segments = name.split('/');
     const packageName = segments[0];
     if(packageName === '.') {
@@ -25,11 +25,6 @@ function normalizePackageName(projectMap: ProjectMap, name: string): string {
             return normalizeTail(name);
         }
     }
-
-}
-
-export function preProcess(projectMap: ProjectMap, name: string, parentName?: string, parentAddress?: string): string {
-    return normalizePackageName(projectMap, name);
 }
 
 export function postProcess(projectMap: ProjectMap, baseUrl: string, resolvedName: string): string {

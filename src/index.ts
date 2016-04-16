@@ -8,12 +8,12 @@ import {ServerResponse} from "http";
 import stream = require('stream');
 import {Readable} from "stream";
 import {Writable} from "stream";
-import {getProjectMap, ProjectMap} from './project-mapper';
+import {getProjectMap} from './project-mapper';
 import {Topology, Serializable} from "./types";
 import {log} from "./logger";
 import {resolveUrlToFile} from "./url-resolver";
 
-function getLoaderConfig(topology: Topology, server: Server): Object & Serializable {
+function getLoaderConfig(server: Server): Object & Serializable {
     const baseURL = `https://${server.address().address}:${server.address().port}`;
     return {
         baseURL,
@@ -80,6 +80,7 @@ function serveSystem(res: ServerResponse, projectMap: Serializable, loaderConfig
 }
 
 
+/* TODO: normalize topology (leading/trailing slashes) */
 export default function bundless(topology: Topology): Server {
     const config = spdyKeys;
     let loaderConfig: Serializable;
@@ -88,7 +89,7 @@ export default function bundless(topology: Topology): Server {
     return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
         log('HIT', req.url);
         if(req.url === '/$system') {
-            loaderConfig = loaderConfig || getLoaderConfig(topology, this);
+            loaderConfig = loaderConfig || getLoaderConfig(this);
             serveSystem(res, projectMap, loaderConfig);
         } else {
             if(req.url === '/node_modules/pkgX/x.js') debugger;
