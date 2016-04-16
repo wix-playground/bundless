@@ -32,7 +32,12 @@ export function preProcess(projectMap: ProjectMap, name: string, parentName?: st
     return normalizePackageName(projectMap, name);
 }
 
-export function postProcess(projectMap: ProjectMap, resolvedName: string, name: string, parentName?: string, parentAddress?: string): string {
-    console.log('postProcess', resolvedName, '|', name, parentName, parentAddress);
+export function postProcess(projectMap: ProjectMap, baseUrl: string, resolvedName: string): string {
+    if(resolvedName.slice(0, baseUrl.length) === baseUrl && resolvedName.slice(-3) === '.js') {
+        const dirIndex = projectMap.dirs.indexOf(resolvedName.slice(baseUrl.length-1));
+        if(dirIndex > -1) {
+            return resolvedName.slice(0, -3) + '/index.js';
+        }
+    }
     return resolvedName;
 }

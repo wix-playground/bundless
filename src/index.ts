@@ -11,9 +11,10 @@ import {Writable} from "stream";
 import {getProjectMap, ProjectMap} from './project-mapper';
 import {Topology, Serializable} from "./types";
 import {log} from "./logger";
+import {resolveUrlToFile} from "./url-resolver";
 
 function getLoaderConfig(topology: Topology, server: Server): Object & Serializable {
-    const baseURL = `https://${server.address().address}:${server.address().port}${topology.baseUrl}`;
+    const baseURL = `https://${server.address().address}:${server.address().port}`;
     return {
         baseURL,
         defaultJSExtensions: false,
@@ -38,14 +39,6 @@ function send404(res: ServerResponse) {
     res.end('');
 }
 
-function resolveUrlToFile(topology: Topology, url: string): string {
-    const filePath: string = url.slice(topology.baseUrl.length);
-    if(filePath.slice(0,12) === 'node_modules') {
-        return path.resolve(topology.rootDir, topology.rootDir, filePath);
-    } else {
-        return path.resolve(topology.rootDir, topology.srcDir, filePath);
-    }
-}
 
 function streamSystemModule(moduleId): Readable {
     return fs.createReadStream(require.resolve(moduleId));
@@ -90,7 +83,7 @@ function serveSystem(res: ServerResponse, projectMap: Serializable, loaderConfig
 export default function bundless(topology: Topology): Server {
     const config = spdyKeys;
     let loaderConfig: Serializable;
-    const projectMap: Serializable = getProjectMap(topology.rootDir);
+    const projectMap: Serializable = getProjectMap(topology);
     log('project map', projectMap);
     return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
         log('HIT', req.url);
@@ -98,6 +91,7 @@ export default function bundless(topology: Topology): Server {
             loaderConfig = loaderConfig || getLoaderConfig(topology, this);
             serveSystem(res, projectMap, loaderConfig);
         } else {
+            if(req.url === '/node_modules/pkgX/x.js') debugger;
             const filePath: string = resolveUrlToFile(topology, req.url);
             try {
                 serveFile(res, filePath);
@@ -111,8 +105,9 @@ export default function bundless(topology: Topology): Server {
 if(require.main === module) {
     const topology = {
         rootDir: process.cwd(),
-        baseUrl: '/modules/',
-        srcDir: 'dist'
+        srcDir: 'dist',
+        srcMount: '/',
+        libMount: '/node_modules'
     };
     bundless(topology).listen(3000, function () {
         console.log(`Bundless listening at ${this.address().address}:${this.address().port}`);

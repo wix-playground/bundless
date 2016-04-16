@@ -6,6 +6,7 @@ export interface Serializable {
 
 export interface Topology {
     rootDir: string;
-    baseUrl: string;
     srcDir: string;
+    srcMount: string;
+    libMount: string;
 }

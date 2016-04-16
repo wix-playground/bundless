@@ -1,14 +1,14 @@
 import {Readable} from "stream";
-import {Serializable} from "./types";
+import {Serializable, Topology} from "./types";
 import fs = require('fs-extra');
 import path = require('path');
 
-function collectRelevantDirs(rootDir: string): string[] {
+function collectRelevantDirs(rootDir: string, relevantFile: string): string[] {
     const pkgList = [];
     
     function collect(dir: string) {
         const list: string[] = fs.readdirSync(dir);
-        if(list.indexOf('package.json') > -1) {
+        if(list.indexOf(relevantFile) > -1) {
             pkgList.push(dir);
         }
         list.forEach(fileName => {
@@ -39,14 +39,28 @@ function resolvePackage(packagePath: string): PackageTuple {
 
 }
 
-function buildPkgDict(rootDir: string): PackageDict {
-    const pkgList = collectRelevantDirs(path.resolve(rootDir, 'node_modules'));
+function buildPkgDict(topology: Topology): PackageDict {
+    const headLength = topology.rootDir.length + 'node_modules'.length + 1;
+    const pkgList = collectRelevantDirs(path.join(topology.rootDir, 'node_modules'), 'package.json');
     const pkgDict: PackageDict = {};
     pkgList.forEach((pkgPath) => {
         const resolved: PackageTuple = resolvePackage(pkgPath);
-        pkgDict[path.basename(pkgPath)] = [path.relative(rootDir, resolved[0]), resolved[1]];
+        const pkg = topology.libMount + resolved[0].slice(headLength);
+        pkgDict[path.basename(pkgPath)] = [pkg, resolved[1]];
     });
     return pkgDict;
+}
+
+function collectDirs(rootDir: string, subDir: string, prefix: string): string [] {
+    const headLength = rootDir.length + subDir.length + 1;
+    return collectRelevantDirs(path.join(rootDir, subDir), 'index.js')
+        .map(fullDir => prefix  + fullDir.slice(headLength) + '.js');
+}
+
+function buildDefIndexDirs(topology: Topology): string[] {
+    return []
+        .concat(collectDirs(topology.rootDir, topology.srcDir, topology.srcMount))
+        .concat(collectDirs(topology.rootDir, 'node_modules', topology.libMount));
 }
 
 export type PackageTuple = [string, string];
@@ -58,10 +72,10 @@ export interface ProjectMap extends Serializable {
     dirs: string[];
 }
 
-export function getProjectMap(rootDir: string): ProjectMap {
+export function getProjectMap(topology: Topology): ProjectMap {
     const projectMap: ProjectMap = {
-        packages: buildPkgDict(rootDir),
-        dirs: [],
+        packages: buildPkgDict(topology),
+        dirs: buildDefIndexDirs(topology),
         serialize: () => projectMapSerialized
     };
     const projectMapSerialized: string = JSON.stringify(projectMap);

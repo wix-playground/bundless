@@ -7,8 +7,9 @@ const port = 3000;
 export function setupBundlessServer(project: PackageBuilder, cb: Function) {
     const bundlessServer = bundless({
         rootDir: project.getPath(),
-        baseUrl: '/modules/',
-        srcDir: 'dist'
+        srcDir: 'dist',
+        srcMount: '/',
+        libMount: '/node_modules'
     });
     bundlessServer.listen(port, host, err => {
         if(err) {
