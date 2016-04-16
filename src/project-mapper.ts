@@ -55,11 +55,13 @@ export type PackageDict = { [pkgName: string]: PackageTuple };
 
 export interface ProjectMap extends Serializable {
     packages: PackageDict;
+    dirs: string[];
 }
 
 export function getProjectMap(rootDir: string): ProjectMap {
     const projectMap: ProjectMap = {
         packages: buildPkgDict(rootDir),
+        dirs: [],
         serialize: () => projectMapSerialized
     };
     const projectMapSerialized: string = JSON.stringify(projectMap);

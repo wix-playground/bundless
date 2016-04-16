@@ -24,10 +24,13 @@ function getLoaderConfig(topology: Topology, server: Server): Object & Serializa
 }
 
 function serveFile(res: ServerResponse, filePath: string) {
-    res.writeHead(200, {
-        'Content-type': 'application/javascript'
-    });
-    fs.createReadStream(filePath).pipe(res);
+    setTimeout(() => {
+        res.writeHead(200, {
+            'Content-type': 'application/javascript'
+        });
+        fs.createReadStream(filePath).pipe(res);
+    }, 200);
+
 }
 
 function send404(res: ServerResponse) {

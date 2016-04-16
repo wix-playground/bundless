@@ -28,8 +28,11 @@ function normalizePackageName(projectMap: ProjectMap, name: string): string {
 
 }
 
-export function getModuleLocator(projectMap: ProjectMap, oldNormalize) {
-    return function normalize(name, parentName, parentAddress) {
-        return oldNormalize(normalizePackageName(projectMap, name), parentName, parentAddress);
-    }
+export function preProcess(projectMap: ProjectMap, name: string, parentName?: string, parentAddress?: string): string {
+    return normalizePackageName(projectMap, name);
+}
+
+export function postProcess(projectMap: ProjectMap, resolvedName: string, name: string, parentName?: string, parentAddress?: string): string {
+    console.log('postProcess', resolvedName, '|', name, parentName, parentAddress);
+    return resolvedName;
 }
