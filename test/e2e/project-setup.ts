@@ -13,8 +13,12 @@ export function setupProject(): PackageBuilder {
         .addFile('dist/a.js', '');
 
     const pkgX = project.addPackage('pkgX')
-        .addMainFile('x.js', 'var y = require("pkgY");')
+        .addMainFile('x.js', `
+            var y = require("pkgY");
+            var data = require("./data.json");
+         `)
         .addFile('sub.js','')
+        .addFile('data.json', '')
         .addPackage('pkgY').addMainFile('y.js', '');
 
 

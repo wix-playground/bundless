@@ -16,6 +16,11 @@ describe('locate', function () {
         locate = getModuleLocator(projectMap, (moduleName) => moduleName);
     });
 
+    it('appends automagically .js extension', function () {
+        expect(locate('./a')).to.equal('./a.js');
+        expect(locate('pkgX/data.json')).to.equal('node_modules/pkgX/data.json')
+    });
+
     it('finds package main file', function () {
         expect(locate('pkgX')).to.equal('node_modules/pkgX/x.js');
     });

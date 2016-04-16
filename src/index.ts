@@ -16,7 +16,7 @@ function getLoaderConfig(topology: Topology, server: Server): Object & Serializa
     const baseURL = `https://${server.address().address}:${server.address().port}${topology.baseUrl}`;
     return {
         baseURL,
-        defaultJSExtensions: true,
+        defaultJSExtensions: false,
         serialize: function () {
             return JSON.stringify(this);
         }
