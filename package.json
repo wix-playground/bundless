@@ -12,7 +12,9 @@
   "scripts": {
     "clean": "rm -rf dist && mkdir dist",
     "pretest": "npm run build",
-    "test": "mocha --reporter mocha-env-reporter ./dist/test",
+    "test": "npm run test:e2e:browser && npm run test:unit",
+    "test:unit": "mocha --reporter mocha-env-reporter ./dist/test/unit",
+    "test:e2e:browser": "node ./dist/test/e2e/e2e-karma.js",
     "build": "npm run clean && tsc",
     "prestart": "npm run build",
     "start": "node dist/src/index.js",
