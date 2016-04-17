@@ -2,7 +2,8 @@ import {Readable} from "stream";
 import {Serializable, Topology} from "./types";
 import fs = require('fs-extra');
 import path = require('path');
-import {supportedNodeLibs, resolveNodeLib, resolveNodeLibUrl} from "./node-support";
+import {supportedNodeLibs, resolveNodeLib} from "./node-support";
+import objectAssign = require('object-assign');
 
 function collectRelevantDirs(rootDir: string, relevantFile: string): string[] {
     const pkgList = [];
@@ -45,7 +46,7 @@ function getNodeLibRoutes(): PackageDict {
         const {url, location} = resolveNodeLib(nodeLib);
         acc[url] = location;
         return acc;
-    }, {});
+    }, {} as PackageDict);
 }
 
 function buildPkgDict(topology: Topology, includeNodeLibs: boolean): PackageDict {
@@ -58,7 +59,7 @@ function buildPkgDict(topology: Topology, includeNodeLibs: boolean): PackageDict
         pkgDict[path.basename(pkgPath)] = [pkg, resolved[1]];
     });
     const standardRoutes = includeNodeLibs ? getNodeLibRoutes() : {};
-    return Object.assign(standardRoutes, pkgDict);
+    return objectAssign(standardRoutes, pkgDict);
 }
 
 function collectDirs(rootDir: string, subDir: string, prefix: string): string [] {

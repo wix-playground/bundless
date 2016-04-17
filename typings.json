@@ -4,6 +4,7 @@
     "fs-extra": "registry:dt/fs-extra#0.0.0+20160319124112",
     "mocha": "registry:dt/mocha#2.2.5+20160317120654",
     "node": "registry:dt/node#4.0.0+20160412142033",
+    "object-assign": "registry:dt/object-assign#4.0.1+20160316155526",
     "systemjs": "registry:dt/systemjs#0.18.4+20160316155526",
     "tmp": "registry:dt/tmp#0.0.28+20160215162030"
   }
