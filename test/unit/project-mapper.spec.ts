@@ -43,6 +43,23 @@ describe('Project Mapper', function () {
         });
     });
 
+    describe('describes Node.js packages', function () {
+        beforeEach(function () {
+            project
+                .addMainFile('dist/main.js');
+            projectMap = getProjectMap(topology, { nodeLibs: true });
+        });
+
+        it('finds regular (ported) Node module', function () {
+            expect(projectMap.packages['zlib']).to.eql(['/$node/browserify-zlib', 'src/index.js']);
+        });
+
+        it('finds stubbed Node module', function () {
+            expect(projectMap.packages['child_process']).to.eql(['/$node', 'stub.js']);
+        });
+
+    });
+
     describe('describes default index files', function () {
         beforeEach(function () {
             project

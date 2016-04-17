@@ -11,9 +11,9 @@ describe('locate', function () {
     before(function () {
         projectMap = {
             packages: {
-                fs: [ '/$node/fs', '' ],
                 pkgX: ['/node_modules/pkgX', 'x.js'],
-                pkgY: ['/node_modules/pkgX/node_modules/pkgY', 'y.js']
+                pkgY: ['/node_modules/pkgX/node_modules/pkgY', 'y.js'],
+                zlib: ['/$node/browserify-zlib', 'src/index.js']
             },
             dirs: [
                 '/a/b.js',
@@ -39,7 +39,7 @@ describe('locate', function () {
     });
 
     it('finds node package', function () {
-        expect(preProcess('fs')).to.equal('/$node/fs');
+        expect(preProcess('zlib')).to.equal('/$node/browserify-zlib/src/index.js');
     });
     
     it('identifies default index file in a directory', function () {

@@ -2,7 +2,7 @@ import {Readable} from "stream";
 import {Serializable, Topology} from "./types";
 import fs = require('fs-extra');
 import path = require('path');
-import {supportedNodeLibs, resolveNodeLib} from "./node-support";
+import {supportedNodeLibs, resolveNodeUrl, aliases, stubs, stubUrl, resolveNodePkg} from "./node-support";
 import objectAssign = require('object-assign');
 
 function collectRelevantDirs(rootDir: string, relevantFile: string): string[] {
@@ -22,8 +22,12 @@ function collectRelevantDirs(rootDir: string, relevantFile: string): string[] {
         });
     }
 
-    collect(rootDir);
-    return pkgList;
+    try {
+        collect(rootDir);
+        return pkgList;
+    } catch(err) {
+        return [];
+    }
 }
 
 function resolvePackage(packagePath: string): PackageTuple {
@@ -41,15 +45,7 @@ function resolvePackage(packagePath: string): PackageTuple {
 
 }
 
-function getNodeLibRoutes(): PackageDict {
-    return supportedNodeLibs.reduce((acc: PackageDict, nodeLib: string) => {
-        const {url, location} = resolveNodeLib(nodeLib);
-        acc[url] = location;
-        return acc;
-    }, {} as PackageDict);
-}
-
-function buildPkgDict(topology: Topology, includeNodeLibs: boolean): PackageDict {
+function buildPkgDict(topology: Topology): PackageDict {
     const headLength = topology.rootDir.length + 'node_modules'.length + 1;
     const pkgList = collectRelevantDirs(path.join(topology.rootDir, 'node_modules'), 'package.json');
     const pkgDict: PackageDict = {};
@@ -58,8 +54,29 @@ function buildPkgDict(topology: Topology, includeNodeLibs: boolean): PackageDict
         const pkg = topology.libMount + resolved[0].slice(headLength);
         pkgDict[path.basename(pkgPath)] = [pkg, resolved[1]];
     });
-    const standardRoutes = includeNodeLibs ? getNodeLibRoutes() : {};
-    return objectAssign(standardRoutes, pkgDict);
+    return pkgDict;
+}
+
+function buildNodePkgDict(): PackageDict {
+    const rootDir: string = path.dirname(require.resolve('node-libs-browser'));
+    const headLength = rootDir.length + 'node_modules'.length + 1;
+    const pkgList = collectRelevantDirs(path.join(rootDir, 'node_modules'), 'package.json');
+    const pkgDict: PackageDict = {};
+    pkgList.forEach((pkgPath) => {
+        const resolved: PackageTuple = resolveNodePkg(pkgPath) || resolvePackage(pkgPath);
+        const pkg = '/$node' + resolved[0].slice(headLength);
+        pkgDict[path.basename(pkgPath)] = [pkg, resolved[1]];
+    });
+    supportedNodeLibs.forEach(nodeLib => {
+        const alias = aliases[nodeLib];
+        if(alias) {
+            pkgDict[nodeLib] = pkgDict[alias];
+        }
+    });
+    stubs.forEach(nodeLib => {
+        pkgDict[nodeLib] = stubUrl;
+    });
+    return pkgDict;
 }
 
 function collectDirs(rootDir: string, subDir: string, prefix: string): string [] {
@@ -75,18 +92,32 @@ function buildDefIndexDirs(topology: Topology): string[] {
 }
 
 export type PackageTuple = [string, string];
-
 export type PackageDict = { [pkgName: string]: PackageTuple };
+export type SimplePackageMap = { [pkgName: string]: string };
 
 export interface ProjectMap extends Serializable {
     packages: PackageDict;
     dirs: string[];
+    nodelibs: SimplePackageMap;
 }
 
-export function getProjectMap(topology: Topology, includeNodeLibs: boolean = false): ProjectMap {
+export interface ProjectMapperOptions {
+    nodeLibs?: boolean;
+}
+
+const defaultOptions: ProjectMapperOptions = {
+    nodeLibs: false
+};
+
+export function getProjectMap(topology: Topology, options: ProjectMapperOptions = {}): ProjectMap {
+    const actualOptions: ProjectMapperOptions = objectAssign({}, defaultOptions, options);
+    const nodePackages: PackageDict = actualOptions.nodeLibs
+        ? buildNodePkgDict()
+        : {};
     const projectMap: ProjectMap = {
-        packages: buildPkgDict(topology, includeNodeLibs),
+        packages: objectAssign({}, nodePackages, buildPkgDict(topology)),
         dirs: buildDefIndexDirs(topology),
+        nodelibs: {},
         serialize: () => projectMapSerialized
     };
     const projectMapSerialized: string = JSON.stringify(projectMap);

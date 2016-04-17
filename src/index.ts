@@ -12,7 +12,7 @@ import {getProjectMap} from './project-mapper';
 import {Topology, Serializable} from "./types";
 import {log} from "./logger";
 import {resolveUrlToFile} from "./url-resolver";
-import {serveSupportedNodeLib} from "./node-support";
+import { serveStub, resolveNodeUrl} from "./node-support";
 
 function getLoaderConfig(server: Server): Object & Serializable {
     const baseURL = `https://${server.address().address}:${server.address().port}`;
@@ -25,28 +25,23 @@ function getLoaderConfig(server: Server): Object & Serializable {
     }
 }
 
-function serveFile(res: ServerResponse, filePath: string) {
-    setTimeout(() => {
-        res.writeHead(200, {
-            'Content-type': 'application/javascript'
-        });
-        fs.createReadStream(filePath).pipe(res);
-    }, 200);
+const contentTypes = {
+    '.json': 'application/json'
+};
 
+function serveFile(res: ServerResponse, filePath: string) {
+    const contentType = contentTypes[path.extname(filePath)] || 'application/javascript';
+    res.writeHead(200, {
+        'Content-type': contentType
+    });
+    fs.createReadStream(filePath).pipe(res);
 }
 
 function serveNodeLib(url: string, res: ServerResponse) {
-    const match = url.match(/\/\$node\/([^/]*)/);
-    if(match) {
-        try {
-            const nodeLib = match[1];
-            const stream: Readable = serveSupportedNodeLib(nodeLib);
-            stream.pipe(res);
-        } catch (err) {
-            send404(res);
-        }
+    if(url === '/$node/stub.js' || url === '/$node/browser.js') {
+        serveStub().pipe(res);
     } else {
-        send404(res);
+        serveFile(res, resolveNodeUrl(url));
     }
 }
 
@@ -100,10 +95,11 @@ function serveSystem(res: ServerResponse, projectMap: Serializable, loaderConfig
 export default function bundless(topology: Topology): Server {
     const config = spdyKeys;
     let loaderConfig: Serializable;
-    const projectMap: Serializable = getProjectMap(topology, true);
+    const projectMap: Serializable = getProjectMap(topology, { nodeLibs: true });
     log('project map', projectMap);
     return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
         log('HIT', req.url);
+        if(req.url === '/$node/constants-browserify/constants.json') debugger;
         if(req.url === '/$system') {
             loaderConfig = loaderConfig || getLoaderConfig(this);
             serveSystem(res, projectMap, loaderConfig);
