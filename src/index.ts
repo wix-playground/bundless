@@ -121,7 +121,7 @@ export default function bundless(topology: Topology): Server {
             if(filePath) {
                 serveFile(res, filePath);
             } else {
-                res.writeHead(404);
+                res.writeHead(404, getResponseHeaders(''));
                 res.end();
             }
 
