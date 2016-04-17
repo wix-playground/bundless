@@ -2,15 +2,18 @@ import {Readable} from "stream";
 import {Serializable, Topology} from "./types";
 import fs = require('fs-extra');
 import path = require('path');
-import {supportedNodeLibs, resolveNodeUrl, aliases, stubs, stubUrl, resolveNodePkg} from "./node-support";
+import {
+    supportedNodeLibs, resolveNodeUrl, aliases, stubs, stubUrl, resolveNodePkg,
+    nodeLibsRootDir
+} from "./node-support";
 import objectAssign = require('object-assign');
 
-function collectRelevantDirs(rootDir: string, relevantFile: string): string[] {
+function collectRelevantDirs(rootDir: string, isRelevantDir: (fileList: string[]) => boolean): string[] {
     const pkgList = [];
     
     function collect(dir: string) {
         const list: string[] = fs.readdirSync(dir);
-        if(list.indexOf(relevantFile) > -1) {
+        if(isRelevantDir(list)) {
             pkgList.push(dir);
         }
         list.forEach(fileName => {
@@ -47,7 +50,7 @@ function resolvePackage(packagePath: string): PackageTuple {
 
 function buildPkgDict(topology: Topology): PackageDict {
     const headLength = topology.rootDir.length + 'node_modules'.length + 1;
-    const pkgList = collectRelevantDirs(path.join(topology.rootDir, 'node_modules'), 'package.json');
+    const pkgList = collectRelevantDirs(path.join(topology.rootDir, 'node_modules'), fileList => fileList.indexOf('package.json')>-1);
     const pkgDict: PackageDict = {};
     pkgList.forEach((pkgPath) => {
         const resolved: PackageTuple = resolvePackage(pkgPath);
@@ -60,7 +63,7 @@ function buildPkgDict(topology: Topology): PackageDict {
 function buildNodePkgDict(): PackageDict {
     const rootDir: string = path.dirname(require.resolve('node-libs-browser'));
     const headLength = rootDir.length + 'node_modules'.length + 1;
-    const pkgList = collectRelevantDirs(path.join(rootDir, 'node_modules'), 'package.json');
+    const pkgList = collectRelevantDirs(path.join(rootDir, 'node_modules'), fileList => fileList.indexOf('package.json')>-1);
     const pkgDict: PackageDict = {};
     pkgList.forEach((pkgPath) => {
         const resolved: PackageTuple = resolveNodePkg(pkgPath) || resolvePackage(pkgPath);
@@ -81,14 +84,15 @@ function buildNodePkgDict(): PackageDict {
 
 function collectDirs(rootDir: string, subDir: string, prefix: string): string [] {
     const headLength = rootDir.length + subDir.length + 1;
-    return collectRelevantDirs(path.join(rootDir, subDir), 'index.js')
+    return collectRelevantDirs(path.join(rootDir, subDir), fileList => fileList.indexOf('index.js')>-1 && fileList.indexOf('package.json') === -1)
         .map(fullDir => prefix  + fullDir.slice(headLength) + '.js');
 }
 
-function buildDefIndexDirs(topology: Topology): string[] {
+function buildDefIndexDirs(topology: Topology, includeNodeLibs: boolean): string[] {
     return []
         .concat(collectDirs(topology.rootDir, topology.srcDir, topology.srcMount))
-        .concat(collectDirs(topology.rootDir, 'node_modules', topology.libMount));
+        .concat(collectDirs(topology.rootDir, 'node_modules', topology.libMount))
+        .concat(includeNodeLibs ? collectDirs(nodeLibsRootDir, 'node_modules', '/$node') : []);
 }
 
 export type PackageTuple = [string, string];
@@ -116,7 +120,7 @@ export function getProjectMap(topology: Topology, options: ProjectMapperOptions 
         : {};
     const projectMap: ProjectMap = {
         packages: objectAssign({}, nodePackages, buildPkgDict(topology)),
-        dirs: buildDefIndexDirs(topology),
+        dirs: buildDefIndexDirs(topology, actualOptions.nodeLibs),
         nodelibs: {},
         serialize: () => projectMapSerialized
     };

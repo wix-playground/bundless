@@ -1,14 +1,12 @@
 import {PackageTuple} from "./project-mapper";
 import {Readable} from "stream";
-const nodeLibsBrowser = require('node-libs-browser');
 import fs = require('fs');
 import path = require('path');
 
-const rootDir: string = path.join(path.dirname(require.resolve('node-libs-browser')), 'node_modules');
-
+export const nodeLibsRootDir: string = path.dirname(require.resolve('node-libs-browser'));
 
 export const supportedNodeLibs = [
-    // "assert",
+    "assert",
     "buffer",
     "child_process",
     "cluster",
@@ -47,7 +45,7 @@ export const stubs = [
     "assert",
     "child_process",
     "cluster",
-    "crypto",
+    // "crypto",
     "dgram",
     "dns",
     "fs",
@@ -67,13 +65,12 @@ export const stubs = [
 export const aliases = {
     "console": "console-browserify",
     "constants": "constants-browserify",
-    // "crypto": "crypto-browserify",
+    "crypto": "crypto-browserify",
     "domain": "domain-browser",
     "http": "http-browserify",
     "https": "https-browserify",
     // "os": "os-browserify/browser.js",
     "path": "path-browserify",
-    // "process": "process/browser.js",
     "querystring": "querystring-es3",
     "stream": "stream-browserify",
     "sys": "util",
@@ -83,6 +80,24 @@ export const aliases = {
     // "vm": "vm-browserify",
     // "zlib": "browserify-zlib"
 };
+
+const browserVersions = [
+    "browserify-cipher",
+    "browserify-aes",
+    "browserify-sign",
+    "browserify-aes",
+    "create-ecdh",
+    "create-hash",
+    "create-hmac",
+    "diffie-hellman",
+    "pbkdf2",
+    "public-encrypt",
+    "browserify-aes",
+    "randombytes",
+    "os-browserify",
+    "process",
+    "util-deprecate"
+];
 
 export const stubUrl = ['/$node', 'stub.js'];
 
@@ -95,14 +110,14 @@ export function serveStub(): Readable {
 }
 
 export function resolveNodeUrl(url: string): string {
-    return path.join(rootDir, url.slice(7));
+    return path.join(nodeLibsRootDir, 'node_modules', url.slice(7));
 }
 
 export function resolveNodePkg(pkgPath: string): PackageTuple {
-    if(pkgPath.endsWith('/inherits')) {
+    if (pkgPath.endsWith('/inherits')) {
         return [pkgPath, 'inherits_browser.js'];
-    } else if(pkgPath === 'process') {
-        return [pkgPath, 'browser.js']
+    } else if (browserVersions.some(pkgName => pkgPath.endsWith(pkgName))) {
+        return [pkgPath, 'browser.js'];
     } else {
         return null;
     }

@@ -28,6 +28,7 @@ describe('locate', function () {
     it('appends automagically .js extension', function () {
         expect(preProcess('./a')).to.equal('./a.js');
         expect(preProcess('pkgX/data.json')).to.equal('/node_modules/pkgX/data.json')
+        expect(preProcess('src/client/editor/editor.skin.html')).to.equal('src/client/editor/editor.skin.html.js')
     });
 
     it('finds package main file', function () {
@@ -37,6 +38,13 @@ describe('locate', function () {
     it('finds sub module in a package', function () {
         expect(preProcess('pkgX/sub')).to.equal('/node_modules/pkgX/sub.js')
     });
+
+    it('deals with relativ paths', function () {
+        expect(preProcess('./elliptic')).to.equal('./elliptic.js');
+        expect(preProcess('../elliptic')).to.equal('../elliptic.js');
+        expect(preProcess('../../elliptic')).to.equal('../../elliptic.js')
+    });
+
 
     it('finds node package', function () {
         expect(preProcess('zlib')).to.equal('/$node/browserify-zlib/src/index.js');

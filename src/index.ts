@@ -15,7 +15,8 @@ import {resolveUrlToFile} from "./url-resolver";
 import { serveStub, resolveNodeUrl} from "./node-support";
 
 function getLoaderConfig(server: Server): Object & Serializable {
-    const baseURL = `https://${server.address().address}:${server.address().port}`;
+    const hostname = server.address().address;
+    const baseURL = `https://${hostname === '::' ? 'localhost' : hostname}:${server.address().port}`;
     return {
         baseURL,
         defaultJSExtensions: false,
@@ -29,27 +30,40 @@ const contentTypes = {
     '.json': 'application/json'
 };
 
-function serveFile(res: ServerResponse, filePath: string) {
+function getResponseHeaders(filePath: string): Object {
     const contentType = contentTypes[path.extname(filePath)] || 'application/javascript';
-    res.writeHead(200, {
-        'Content-type': contentType
+    return {
+        'Content-type': contentType,
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE'
+    };
+}
+
+function serveFile(res: ServerResponse, source: string | Readable) {
+    const responseHeaders: Object = getResponseHeaders(source);
+    const stream = typeof source === 'string'
+        ? fs.createReadStream(source)
+        : source;
+    if(stream === null) debugger;
+    stream.once('data', () => {
+        res.writeHead(200, responseHeaders);
     });
-    fs.createReadStream(filePath).pipe(res);
+    stream.once('error', err => {
+        res.writeHead(404, responseHeaders);
+        res.end(err.toString());
+    });
+    stream.pipe(res);
+
 }
 
 function serveNodeLib(url: string, res: ServerResponse) {
     if(url === '/$node/stub.js' || url === '/$node/browser.js') {
-        serveStub().pipe(res);
+        const stub: Readable = serveStub();
+        serveFile(res, stub);
     } else {
         serveFile(res, resolveNodeUrl(url));
     }
 }
-
-function send404(res: ServerResponse) {
-    res.writeHead(404);
-    res.end('');
-}
-
 
 function streamSystemModule(moduleId): Readable {
     return fs.createReadStream(require.resolve(moduleId));
@@ -73,9 +87,7 @@ function seqStreams(inputStreams: Array<Readable | string>, outputStream: Writab
 }
 
 function serveSystem(res: ServerResponse, projectMap: Serializable, loaderConfig: Serializable) {
-    res.writeHead(200, {
-        'Content-type': 'application/javascript'
-    });
+    res.writeHead(200, getResponseHeaders('system.js'));
     seqStreams([
         streamSystemModule('systemjs/dist/system.js'),
         'var projectMap = ',
@@ -98,8 +110,7 @@ export default function bundless(topology: Topology): Server {
     const projectMap: Serializable = getProjectMap(topology, { nodeLibs: true });
     log('project map', projectMap);
     return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
-        log('HIT', req.url);
-        if(req.url === '/$node/constants-browserify/constants.json') debugger;
+        log('server >', req.method, req.url);
         if(req.url === '/$system') {
             loaderConfig = loaderConfig || getLoaderConfig(this);
             serveSystem(res, projectMap, loaderConfig);
@@ -107,23 +118,25 @@ export default function bundless(topology: Topology): Server {
             serveNodeLib(req.url, res);
         } else {
             const filePath: string = resolveUrlToFile(topology, req.url);
-            try {
+            if(filePath) {
                 serveFile(res, filePath);
-            } catch (err) {
-                send404(res);
+            } else {
+                res.writeHead(404);
+                res.end();
             }
+
         }
     });
 }
 
 if(require.main === module) {
     const topology = {
-        rootDir: process.cwd(),
+        rootDir: '/Users/tobisek/projects/core3-editor',
         srcDir: 'dist',
-        srcMount: '/',
-        libMount: '/node_modules'
+        srcMount: '/modules',
+        libMount: '/lib'
     };
-    bundless(topology).listen(3000, function () {
+    bundless(topology).listen(4000, function () {
         console.log(`Bundless listening at ${this.address().address}:${this.address().port}`);
     });
 }

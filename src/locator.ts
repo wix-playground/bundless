@@ -1,19 +1,24 @@
-import {ProjectMap, PackageTuple} from "./project-mapper";
+import {ProjectMap} from "./project-mapper";
 
 function getExt(fileName: string): string {
+    const slashIndex = fileName.lastIndexOf('/');
     const dotIndex = fileName.lastIndexOf('.');
-    return dotIndex > -1 ? fileName.slice(dotIndex) : '';
+    return (dotIndex > slashIndex) ? fileName.slice(dotIndex) : '';
 }
 
 function normalizeTail(name: string): string {
     const ext = getExt(name);
-    return !!ext ? name : name + '.js';
+    if(ext === '.js' || ext === '.json') {
+        return name;
+    } else {
+        return name + '.js';
+    }
 }
 
 export function preProcess(projectMap: ProjectMap, name: string, parentName?: string, parentAddress?: string): string {
     const segments = name.split('/');
     const packageName = segments[0];
-    if(packageName === '.') {
+    if(packageName === '.' || packageName === '..') {
         const tail = segments.slice(1).join('/');
         return segments[0] + '/' + normalizeTail(tail);
     } else {
@@ -38,5 +43,5 @@ export function postProcess(projectMap: ProjectMap, baseUrl: string, resolvedNam
             return resolvedName.slice(0, -3) + '/index.js';
         }
     }
-    return resolvedName;
+    return normalizeTail(resolvedName);
 }

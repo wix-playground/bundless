@@ -1,14 +1,18 @@
 declare const locator;
 declare const projectMap;
+
+const logginOn = false;
+const log = logginOn ? console.log.bind(console, 'client >') : () => {};
+
+
 const origNormalize = System['normalize'];
 System['normalize'] = function (name: string, parentName: string, parentAddress: string) {
-
     const newName = locator.preProcess(projectMap, name, parentName, parentAddress);
+    log(`preProcess() ${name} -> ${newName}`);
     return origNormalize.call(System, newName, parentName, parentAddress)
         .then(resolvedName => {
-
             const result = locator.postProcess(projectMap, System.baseURL, resolvedName)
-            console.log(':::', resolvedName, result, name, parentName);
+            log(`postProcess() ${name}: ${resolvedName} -> ${result}`);
             return result;
         });
 };
@@ -21,7 +25,6 @@ System['translate'] = function (load) {
         return origTranslate(load);
     }
 };
-window.Buffer = window.Buffer || {};
-window.process = window.process || {
-        env: {}
-    };
+
+
+window['process'] = window['process'] || { env: {} };

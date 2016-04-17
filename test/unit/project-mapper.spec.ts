@@ -51,7 +51,7 @@ describe('Project Mapper', function () {
         });
 
         it('finds regular (ported) Node module', function () {
-            expect(projectMap.packages['zlib']).to.eql(['/$node/browserify-zlib', 'src/index.js']);
+            expect(projectMap.packages['path']).to.eql(['/$node/path-browserify', 'index.js']);
         });
 
         it('finds stubbed Node module', function () {
@@ -64,7 +64,8 @@ describe('Project Mapper', function () {
         beforeEach(function () {
             project
                 .addFile('dist/foo/bar/index.js')
-                .addPackage('x').addFile('z/index.js');
+                .addPackage('x').addFile('z/index.js')
+                .addPackage('poo').addFile('index.js', '// this should be invisible');
             project
                 .addPackage('y')
                     .addFile('a.index')
