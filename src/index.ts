@@ -12,6 +12,7 @@ import {getProjectMap} from './project-mapper';
 import {Topology, Serializable} from "./types";
 import {log} from "./logger";
 import {resolveUrlToFile} from "./url-resolver";
+import {serveSupportedNodeLib} from "./node-support";
 
 function getLoaderConfig(server: Server): Object & Serializable {
     const baseURL = `https://${server.address().address}:${server.address().port}`;
@@ -32,6 +33,21 @@ function serveFile(res: ServerResponse, filePath: string) {
         fs.createReadStream(filePath).pipe(res);
     }, 200);
 
+}
+
+function serveNodeLib(url: string, res: ServerResponse) {
+    const match = url.match(/\/\$node\/(.*?)\//);
+    if(match) {
+        try {
+            const nodeLib = match[1];
+            const stream: Readable = serveSupportedNodeLib(nodeLib);
+            stream.pipe(res);
+        } catch (err) {
+            send404(res);
+        }
+    } else {
+        send404(res);
+    }
 }
 
 function send404(res: ServerResponse) {
@@ -84,13 +100,15 @@ function serveSystem(res: ServerResponse, projectMap: Serializable, loaderConfig
 export default function bundless(topology: Topology): Server {
     const config = spdyKeys;
     let loaderConfig: Serializable;
-    const projectMap: Serializable = getProjectMap(topology);
+    const projectMap: Serializable = getProjectMap(topology, true);
     log('project map', projectMap);
     return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
         log('HIT', req.url);
         if(req.url === '/$system') {
             loaderConfig = loaderConfig || getLoaderConfig(this);
             serveSystem(res, projectMap, loaderConfig);
+        } else if(req.url.slice(0,7) === '/$node/') {
+            serveNodeLib(req.url, res);
         } else {
             if(req.url === '/node_modules/pkgX/x.js') debugger;
             const filePath: string = resolveUrlToFile(topology, req.url);

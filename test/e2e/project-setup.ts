@@ -1,6 +1,8 @@
 import {PackageBuilder, default as projectDriver} from "../../test-kit/project-driver";
 import tmp = require('tmp');
 import {SynchrounousResult} from "tmp";
+import {supportedNodeLibs} from "../../src/node-support";
+
 
 export function setupProject(): PackageBuilder {
     const tempDir: SynchrounousResult = tmp.dirSync();
@@ -10,7 +12,7 @@ export function setupProject(): PackageBuilder {
         var x = require("pkgX");  
         var x2 = require("pkgX/sub");  
      `)
-        .addFile('dist/a.js', '');
+        .addFile('dist/a.js', supportedNodeLibs.map(libName => `var ${libName} = require("${libName}");`).join('\n'));
 
     const pkgX = project.addPackage('pkgX')
         .addMainFile('x.js', `

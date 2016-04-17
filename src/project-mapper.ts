@@ -2,6 +2,7 @@ import {Readable} from "stream";
 import {Serializable, Topology} from "./types";
 import fs = require('fs-extra');
 import path = require('path');
+import {supportedNodeLibs, resolveNodeLib, resolveNodeLibUrl} from "./node-support";
 
 function collectRelevantDirs(rootDir: string, relevantFile: string): string[] {
     const pkgList = [];
@@ -39,7 +40,15 @@ function resolvePackage(packagePath: string): PackageTuple {
 
 }
 
-function buildPkgDict(topology: Topology): PackageDict {
+function getNodeLibRoutes(): PackageDict {
+    return supportedNodeLibs.reduce((acc: PackageDict, nodeLib: string) => {
+        const {url, location} = resolveNodeLib(nodeLib);
+        acc[url] = location;
+        return acc;
+    }, {});
+}
+
+function buildPkgDict(topology: Topology, includeNodeLibs: boolean): PackageDict {
     const headLength = topology.rootDir.length + 'node_modules'.length + 1;
     const pkgList = collectRelevantDirs(path.join(topology.rootDir, 'node_modules'), 'package.json');
     const pkgDict: PackageDict = {};
@@ -48,7 +57,8 @@ function buildPkgDict(topology: Topology): PackageDict {
         const pkg = topology.libMount + resolved[0].slice(headLength);
         pkgDict[path.basename(pkgPath)] = [pkg, resolved[1]];
     });
-    return pkgDict;
+    const standardRoutes = includeNodeLibs ? getNodeLibRoutes() : {};
+    return Object.assign(standardRoutes, pkgDict);
 }
 
 function collectDirs(rootDir: string, subDir: string, prefix: string): string [] {
@@ -72,9 +82,9 @@ export interface ProjectMap extends Serializable {
     dirs: string[];
 }
 
-export function getProjectMap(topology: Topology): ProjectMap {
+export function getProjectMap(topology: Topology, includeNodeLibs: boolean = false): ProjectMap {
     const projectMap: ProjectMap = {
-        packages: buildPkgDict(topology),
+        packages: buildPkgDict(topology, includeNodeLibs),
         dirs: buildDefIndexDirs(topology),
         serialize: () => projectMapSerialized
     };
