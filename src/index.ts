@@ -36,7 +36,7 @@ function serveFile(res: ServerResponse, filePath: string) {
 }
 
 function serveNodeLib(url: string, res: ServerResponse) {
-    const match = url.match(/\/\$node\/(.*?)\//);
+    const match = url.match(/\/\$node\/([^/]*)/);
     if(match) {
         try {
             const nodeLib = match[1];
@@ -110,7 +110,6 @@ export default function bundless(topology: Topology): Server {
         } else if(req.url.slice(0,7) === '/$node/') {
             serveNodeLib(req.url, res);
         } else {
-            if(req.url === '/node_modules/pkgX/x.js') debugger;
             const filePath: string = resolveUrlToFile(topology, req.url);
             try {
                 serveFile(res, filePath);

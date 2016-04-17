@@ -11,6 +11,7 @@ describe('locate', function () {
     before(function () {
         projectMap = {
             packages: {
+                fs: [ '/$node/fs', '' ],
                 pkgX: ['/node_modules/pkgX', 'x.js'],
                 pkgY: ['/node_modules/pkgX/node_modules/pkgY', 'y.js']
             },
@@ -35,6 +36,10 @@ describe('locate', function () {
 
     it('finds sub module in a package', function () {
         expect(preProcess('pkgX/sub')).to.equal('/node_modules/pkgX/sub.js')
+    });
+
+    it('finds node package', function () {
+        expect(preProcess('fs')).to.equal('/$node/fs');
     });
     
     it('identifies default index file in a directory', function () {

@@ -18,9 +18,13 @@ export function preProcess(projectMap: ProjectMap, name: string, parentName?: st
         return segments[0] + '/' + normalizeTail(tail);
     } else {
         if(packageName in projectMap.packages) {
-            const realPackagePath: PackageTuple = projectMap.packages[packageName];
-            const tail = segments.length === 1 ? realPackagePath[1] : segments.slice(1).join('/');
-            return realPackagePath[0] + '/' + normalizeTail(tail);
+            const [moduleSource, modulePath] = projectMap.packages[packageName];
+            if(modulePath) {
+                const tail = segments.length === 1 ? modulePath : segments.slice(1).join('/');
+                return moduleSource + '/' + normalizeTail(tail);
+            } else {
+                return moduleSource;
+            }
         } else {
             return normalizeTail(name);
         }
