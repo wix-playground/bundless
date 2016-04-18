@@ -108,7 +108,6 @@ export default function bundless(topology: Topology): Server {
     const config = spdyKeys;
     let loaderConfig: Serializable;
     const projectMap: Serializable = getProjectMap(topology, { nodeLibs: true });
-    log('project map', projectMap);
     return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
         log('server >', req.method, req.url);
         if(req.url === '/$system') {

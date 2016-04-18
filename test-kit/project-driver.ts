@@ -2,10 +2,13 @@ import fs = require('fs-extra');
 import path = require('path');
 
 export class PackageBuilder {
-    constructor(private name: string, private rootDir: string) {
+    constructor(private name: string, private rootDir: string, version?:string) {
         const packageJson = {
             name
         };
+        if(version) {
+            packageJson['version'] = version;
+        }
         this.writeFile('package.json', packageJson);
     }
 
@@ -22,9 +25,9 @@ export class PackageBuilder {
         return this;
     }
 
-    addPackage(name: string): PackageBuilder {
+    addPackage(name: string, version?: string): PackageBuilder {
         const newPath: string = path.resolve(this.rootDir, 'node_modules', name);
-        return new PackageBuilder(name, newPath);
+        return new PackageBuilder(name, newPath, version);
     }
 
     getPath(): string {

@@ -34,11 +34,38 @@ describe('Project Mapper', function () {
             projectMap = getProjectMap(topology);
         });
 
-        it('with aggressive version flattening', function () {
+        it('as correct project map', function () {
             expect(projectMap.packages).to.eql({
                 'foo': ['/lib/foo', 'bar/far/f.js'],
                 'bar': ['/lib/bar', 'do/re/mi/fa.js'],
                 'sol': ['/lib/bar/node_modules/sol', 'la/si/do.js']
+            });
+        });
+    });
+
+    describe('resolves different versions', function () {
+        beforeEach(function () {
+            project
+                .addMainFile('dist/main.js')
+                .addPackage('foo')
+                    .addPackage('webpack', '1.2.3')
+                        .addPackage('socket.io', '7.8.9');
+
+
+            project
+                .addPackage('bar')
+                    .addPackage('webpack', '2.3.4')
+                        .addPackage('socket.io', '4.5.6');
+
+            projectMap = getProjectMap(topology);
+        });
+
+        it('with "aggressive" approach', function () {
+            expect(projectMap.packages).to.eql({
+                'foo': ['/lib/foo', 'index.js'],
+                'bar': ['/lib/bar', 'index.js'],
+                'webpack': ['/lib/bar/node_modules/webpack', 'index.js'],
+                'socket.io': ['/lib/foo/node_modules/webpack/node_modules/socket.io', 'index.js']
             });
         });
     });

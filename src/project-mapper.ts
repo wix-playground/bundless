@@ -1,11 +1,8 @@
-import {Readable} from "stream";
 import {Serializable, Topology} from "./types";
 import fs = require('fs-extra');
 import path = require('path');
-import {
-    supportedNodeLibs, resolveNodeUrl, aliases, stubs, stubUrl, resolveNodePkg,
-    nodeLibsRootDir
-} from "./node-support";
+import semver = require('semver');
+import { supportedNodeLibs, aliases, stubs, stubUrl, resolveNodePkg, nodeLibsRootDir } from "./node-support";
 import objectAssign = require('object-assign');
 
 function collectRelevantDirs(rootDir: string, isRelevantDir: (fileList: string[]) => boolean): string[] {
@@ -45,7 +42,33 @@ function resolvePackage(packagePath: string): PackageTuple {
     } else {
         return [packagePath, 'index.js'];
     }
+}
 
+function getPackageVersion(topology: Topology, pkgPath: PackageTuple): string {
+    let packageJson: Object;
+    const packageJsonPath = path.join(topology.rootDir, 'node_modules', pkgPath[0].slice(topology.libMount.length + 1), 'package.json');
+    try {
+        packageJson = JSON.parse(
+            fs.readFileSync(packageJsonPath).toString()
+        );
+        return packageJson['version'] || '0.0.0';
+    } catch (err) {
+        return '0.0.0';
+    }
+}
+
+function resolvePkgVersion(topology: Topology, newPkgPath: PackageTuple, existingPkgPath: PackageTuple): PackageTuple {
+    if(existingPkgPath) {
+        const newVersion = getPackageVersion(topology, newPkgPath);
+        const existingVersion = getPackageVersion(topology, existingPkgPath);
+        if(semver.gt(newVersion, existingVersion)) {
+            return newPkgPath;
+        } else {
+            return existingPkgPath;
+        }
+    } else {
+        return newPkgPath;
+    }
 }
 
 function buildPkgDict(topology: Topology): PackageDict {
@@ -55,7 +78,8 @@ function buildPkgDict(topology: Topology): PackageDict {
     pkgList.forEach((pkgPath) => {
         const resolved: PackageTuple = resolvePackage(pkgPath);
         const pkg = topology.libMount + resolved[0].slice(headLength);
-        pkgDict[path.basename(pkgPath)] = [pkg, resolved[1]];
+        const pkgKey = path.basename(pkgPath);
+        pkgDict[pkgKey] = resolvePkgVersion(topology, [pkg, resolved[1]], pkgDict[pkgKey]);
     });
     return pkgDict;
 }
