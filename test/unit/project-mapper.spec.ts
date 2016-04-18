@@ -18,7 +18,7 @@ describe('Project Mapper', function () {
             rootDir: project.getPath(),
             srcDir: 'dist',
             srcMount: '/local',
-            libMount: '/node_modules'
+            libMount: '/lib'
         }
     });
 
@@ -36,9 +36,9 @@ describe('Project Mapper', function () {
 
         it('with aggressive version flattening', function () {
             expect(projectMap.packages).to.eql({
-                'foo': ['/node_modules/foo', 'bar/far/f.js'],
-                'bar': ['/node_modules/bar', 'do/re/mi/fa.js'],
-                'sol': ['/node_modules/bar/node_modules/sol', 'la/si/do.js']
+                'foo': ['/lib/foo', 'bar/far/f.js'],
+                'bar': ['/lib/bar', 'do/re/mi/fa.js'],
+                'sol': ['/lib/bar/node_modules/sol', 'la/si/do.js']
             });
         });
     });
@@ -80,8 +80,8 @@ describe('Project Mapper', function () {
         it('in various depths', function () {
             expect(projectMap.dirs).to.eql([
                 '/local/foo/bar.js',
-                '/node_modules/x/z.js',
-                '/node_modules/y/node_modules/z/a/b/c.js'
+                '/lib/x/z.js',
+                '/lib/y/node_modules/z/a/b/c.js'
             ]);
         });
     });

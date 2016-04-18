@@ -11,7 +11,7 @@ System['normalize'] = function (name: string, parentName: string, parentAddress:
     log(`preProcess() ${name} -> ${newName}`);
     return origNormalize.call(System, newName, parentName, parentAddress)
         .then(resolvedName => {
-            const result = locator.postProcess(projectMap, System.baseURL, resolvedName)
+            const result = locator.postProcess(projectMap, System.baseURL, resolvedName);
             log(`postProcess() ${name}: ${resolvedName} -> ${result}`);
             return result;
         });
