@@ -102,7 +102,7 @@ export function postProcess(projectMap: ProjectMap, baseUrl: string, resolvedNam
     if(isDefaultIndexDir(projectMap, '/' + filePath)) {
         return joinUrl(baseUrl, stripJsExt(filePath), 'index.js');
     } else {
-        if(getExt(resolvedName) !== '.js') {
+        if(getExt(resolvedName) === '') {
             const pkgs = extractPackageNames(baseUrl, 'lib', resolvedName);
             if (pkgs.length > 0) {
                 const pkgMainFilePath = resolveAsPackage(projectMap, pkgs[pkgs.length - 1]);
