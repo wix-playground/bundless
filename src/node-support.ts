@@ -56,9 +56,9 @@ export const stubs = [
     "readline",
     "repl",
     "tls",
-    "utils",
+    // "utils",
     "vm",
-    "zlib"
+    // "zlib"
 ];
 
 
@@ -69,16 +69,16 @@ export const aliases = {
     "domain": "domain-browser",
     "http": "http-browserify",
     "https": "https-browserify",
-    // "os": "os-browserify/browser.js",
+    "os": "os-browserify",
     "path": "path-browserify",
     "querystring": "querystring-es3",
     "stream": "stream-browserify",
     "sys": "util",
     "timers": "timers-browserify",
     "tty": "tty-browserify",
-    // "util": "util",
-    // "vm": "vm-browserify",
-    // "zlib": "browserify-zlib"
+    "util": "util",
+    "vm": "vm-browserify",
+    "zlib": "browserify-zlib"
 };
 
 const browserVersions = [
@@ -99,7 +99,7 @@ const browserVersions = [
     "util-deprecate"
 ];
 
-export const stubUrl = ['/$node', 'stub.js'];
+export const stubUrl: PackageTuple = ['/$node', 'stub.js'];
 
 export function serveStub(): Readable {
     const stream = new Readable();
@@ -113,10 +113,14 @@ export function resolveNodeUrl(url: string): string {
     return path.join(nodeLibsRootDir, 'node_modules', url.slice(7));
 }
 
+function endsWith(str: string, subStr: string): boolean {
+    return str.slice(-subStr.length) === subStr;
+}
+
 export function resolveNodePkg(pkgPath: string): PackageTuple {
-    if (pkgPath.endsWith('/inherits')) {
+    if (endsWith(pkgPath, '/inherits')) {
         return [pkgPath, 'inherits_browser.js'];
-    } else if (browserVersions.some(pkgName => pkgPath.endsWith(pkgName))) {
+    } else if (browserVersions.some(pkgName => endsWith(pkgPath, pkgName))) {
         return [pkgPath, 'browser.js'];
     } else {
         return null;

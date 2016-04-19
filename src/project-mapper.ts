@@ -71,6 +71,12 @@ function resolvePkgVersion(topology: Topology, newPkgPath: PackageTuple, existin
     }
 }
 
+function override(pkgDict: PackageDict, key: string, localPath: string) {
+    if(key in pkgDict) {
+        pkgDict[key][1] = localPath;
+    }
+}
+
 function buildPkgDict(topology: Topology): PackageDict {
     const headLength = topology.rootDir.length + 'node_modules'.length + 1;
     const pkgList = collectRelevantDirs(path.join(topology.rootDir, 'node_modules'), fileList => fileList.indexOf('package.json')>-1);
@@ -81,6 +87,8 @@ function buildPkgDict(topology: Topology): PackageDict {
         const pkgKey = path.basename(pkgPath);
         pkgDict[pkgKey] = resolvePkgVersion(topology, [pkg, resolved[1]], pkgDict[pkgKey]);
     });
+    override(pkgDict, 'superagent', 'superagent.js');
+    override(pkgDict, 'socket.io-client', 'socket.io.js');
     return pkgDict;
 }
 
@@ -103,6 +111,14 @@ function buildNodePkgDict(): PackageDict {
     stubs.forEach(nodeLib => {
         pkgDict[nodeLib] = stubUrl;
     });
+    // exports._stream_duplex				= require.resolve('readable-stream/duplex.js');
+    // exports._stream_passthrough			= require.resolve('readable-stream/passthrough.js');
+    // exports._stream_readable			= require.resolve('readable-stream/readable.js');
+    // exports._stream_transform			= require.resolve('readable-stream/transform.js');
+    // exports._stream_writable			= require.resolve('readable-stream/writable.js');
+
+    pkgDict['_stream_transform'] = ['/$node/readable-stream', 'transform.js'];
+    pkgDict['inherits'] = ['/$node/util/node_modules/inherits', 'inherits_browser.js'];
     return pkgDict;
 }
 
@@ -143,7 +159,7 @@ export function getProjectMap(topology: Topology, options: ProjectMapperOptions 
         ? buildNodePkgDict()
         : {};
     const projectMap: ProjectMap = {
-        packages: objectAssign({}, nodePackages, buildPkgDict(topology)),
+        packages: objectAssign({}, buildPkgDict(topology), nodePackages),
         dirs: buildDefIndexDirs(topology, actualOptions.nodeLibs),
         nodelibs: {},
         serialize: () => projectMapSerialized

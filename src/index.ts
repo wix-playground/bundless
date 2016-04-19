@@ -26,25 +26,16 @@ function getLoaderConfig(server: Server): Object & Serializable {
     }
 }
 
-const contentTypes = {
-    '.json': 'application/json'
+const responseHeaders = {
+    'Content-type': 'application/javascript',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE'
 };
 
-function getResponseHeaders(filePath: string): Object {
-    const contentType = contentTypes[path.extname(filePath)] || 'application/javascript';
-    return {
-        'Content-type': contentType,
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE'
-    };
-}
-
 function serveFile(res: ServerResponse, source: string | Readable) {
-    const responseHeaders: Object = getResponseHeaders(source);
     const stream = typeof source === 'string'
         ? fs.createReadStream(source)
         : source;
-    if(stream === null) debugger;
     stream.once('data', () => {
         res.writeHead(200, responseHeaders);
     });
@@ -87,7 +78,7 @@ function seqStreams(inputStreams: Array<Readable | string>, outputStream: Writab
 }
 
 function serveSystem(res: ServerResponse, projectMap: Serializable, loaderConfig: Serializable) {
-    res.writeHead(200, getResponseHeaders('system.js'));
+    res.writeHead(200, responseHeaders);
     seqStreams([
         streamSystemModule('systemjs/dist/system.js'),
         'var projectMap = ',
@@ -120,7 +111,7 @@ export default function bundless(topology: Topology): Server {
             if(filePath) {
                 serveFile(res, filePath);
             } else {
-                res.writeHead(404, getResponseHeaders(''));
+                res.writeHead(404, responseHeaders);
                 res.end();
             }
 

@@ -27,4 +27,5 @@ System['translate'] = function (load) {
 };
 
 
-window['process'] = window['process'] || { env: {} };
+
+window['process'] = window['process'] || { env: {}, argv: [] };
