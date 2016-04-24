@@ -42,23 +42,16 @@ export const supportedNodeLibs = [
 ];
 
 export const stubs = [
-    "assert",
     "child_process",
     "cluster",
-    // "crypto",
     "dgram",
     "dns",
     "fs",
     "module",
     "net",
-    "os",
-    // "process",
     "readline",
     "repl",
-    "tls",
-    // "utils",
-    "vm",
-    // "zlib"
+    "tls"
 ];
 
 
@@ -104,7 +97,7 @@ export const stubUrl: PackageTuple = ['/$node', 'stub.js'];
 export function serveStub(): Readable {
     const stream = new Readable();
     stream._read = () => {};
-    stream.push('module.exports = null;')
+    stream.push('module.exports = null;');
     stream.push(null);
     return stream;
 }

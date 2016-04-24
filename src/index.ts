@@ -20,6 +20,11 @@ function getLoaderConfig(server: Server): Object & Serializable {
     return {
         baseURL,
         defaultJSExtensions: false,
+        meta: {
+            '$node/*': {
+                deps: ['/$node-globals']
+            }
+        },
         serialize: function () {
             return JSON.stringify(this);
         }
@@ -104,6 +109,14 @@ export default function bundless(topology: Topology): Server {
         if(req.url === '/$system') {
             loaderConfig = loaderConfig || getLoaderConfig(this);
             serveSystem(res, projectMap, loaderConfig);
+        } else if(req.url === '/$node-globals.js'){
+            res.writeHead(200, responseHeaders);
+            res.end(`
+                window['Buffer'] = window['Buffer'] || require('buffer').Buffer;
+                window['process'] = window['process'] || require('process');
+                process.version = '0.0.0';
+                process.cwd = function () { return ''; };
+            `);
         } else if(req.url.slice(0,7) === '/$node/') {
             serveNodeLib(req.url, res);
         } else {

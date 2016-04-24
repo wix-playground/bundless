@@ -87,8 +87,6 @@ function buildPkgDict(topology: Topology): PackageDict {
         const pkgKey = path.basename(pkgPath);
         pkgDict[pkgKey] = resolvePkgVersion(topology, [pkg, resolved[1]], pkgDict[pkgKey]);
     });
-    override(pkgDict, 'superagent', 'superagent.js');
-    override(pkgDict, 'socket.io-client', 'socket.io.js');
     return pkgDict;
 }
 
@@ -111,11 +109,6 @@ function buildNodePkgDict(): PackageDict {
     stubs.forEach(nodeLib => {
         pkgDict[nodeLib] = stubUrl;
     });
-    // exports._stream_duplex				= require.resolve('readable-stream/duplex.js');
-    // exports._stream_passthrough			= require.resolve('readable-stream/passthrough.js');
-    // exports._stream_readable			= require.resolve('readable-stream/readable.js');
-    // exports._stream_transform			= require.resolve('readable-stream/transform.js');
-    // exports._stream_writable			= require.resolve('readable-stream/writable.js');
 
     pkgDict['_stream_transform'] = ['/$node/readable-stream', 'transform.js'];
     pkgDict['inherits'] = ['/$node/util/node_modules/inherits', 'inherits_browser.js'];
