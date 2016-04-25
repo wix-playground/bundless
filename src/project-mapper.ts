@@ -72,7 +72,6 @@ function buildPkgDict(dirInfo: DirInfo, libMount: string, options: PackageDictOp
     for(let pkgName in pkgDict) {
         const pkg: DirInfo = pkgDict[pkgName];
         const pkgPath = libMount + pkg.path.slice(dirInfo.path.length);
-        if(pkgName === 'js-base64') debugger;
         const mainFilePath = resolveMainPkgFile(pkg, options.lookupBrowserJs);
         finalDict[pkgName] = [pkgPath, mainFilePath];
     }
