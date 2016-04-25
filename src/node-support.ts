@@ -41,21 +41,9 @@ export const supportedNodeLibs = [
     "zlib"
 ];
 
-export const stubs = [
-    "child_process",
-    "cluster",
-    "dgram",
-    "dns",
-    "fs",
-    "module",
-    "net",
-    "readline",
-    "repl",
-    "tls"
-];
-
-
-export const aliases = {
+export type AliasValue = string | PackageTuple;
+export type AliasDict = { [alias: string]: AliasValue }
+export const aliases: AliasDict = {
     "console": "console-browserify",
     "constants": "constants-browserify",
     "crypto": "crypto-browserify",
@@ -71,26 +59,23 @@ export const aliases = {
     "tty": "tty-browserify",
     "util": "util",
     "vm": "vm-browserify",
-    "zlib": "browserify-zlib"
-};
+    "zlib": "browserify-zlib",
 
-const browserVersions = [
-    "browserify-cipher",
-    "browserify-aes",
-    "browserify-sign",
-    "browserify-aes",
-    "create-ecdh",
-    "create-hash",
-    "create-hmac",
-    "diffie-hellman",
-    "pbkdf2",
-    "public-encrypt",
-    "browserify-aes",
-    "randombytes",
-    "os-browserify",
-    "process",
-    "util-deprecate"
-];
+    "_stream_transform" : ['/$node/readable-stream', 'transform.js'],
+    "inherits": ['/$node/util/node_modules/inherits', 'inherits_browser.js'],
+
+    // stubs:
+    "child_process": null,
+    "cluster": null,
+    "dgram": null,
+    "dns": null,
+    "fs": null,
+    "module": null,
+    "net": null,
+    "readline": null,
+    "repl": null,
+    "tls": null
+};
 
 export const stubUrl: PackageTuple = ['/$node', 'stub.js'];
 
@@ -106,16 +91,3 @@ export function resolveNodeUrl(url: string): string {
     return path.join(nodeLibsRootDir, 'node_modules', url.slice(7));
 }
 
-function endsWith(str: string, subStr: string): boolean {
-    return str.slice(-subStr.length) === subStr;
-}
-
-export function resolveNodePkg(pkgPath: string): PackageTuple {
-    if (endsWith(pkgPath, '/inherits')) {
-        return [pkgPath, 'inherits_browser.js'];
-    } else if (browserVersions.some(pkgName => endsWith(pkgPath, pkgName))) {
-        return [pkgPath, 'browser.js'];
-    } else {
-        return null;
-    }
-}

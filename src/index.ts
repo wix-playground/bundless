@@ -8,7 +8,7 @@ import {ServerResponse} from "http";
 import stream = require('stream');
 import {Readable} from "stream";
 import {Writable} from "stream";
-import {getProjectMap} from './project-mapper';
+import {getProjectMap, makeSerializable} from './project-mapper';
 import {Topology, Serializable} from "./types";
 import {log} from "./logger";
 import {resolveUrlToFile} from "./url-resolver";
@@ -103,7 +103,7 @@ function serveSystem(res: ServerResponse, projectMap: Serializable, loaderConfig
 export default function bundless(topology: Topology): Server {
     const config = spdyKeys;
     let loaderConfig: Serializable;
-    const projectMap: Serializable = getProjectMap(topology, { nodeLibs: true });
+    const projectMap: Serializable = makeSerializable(getProjectMap(topology, { nodeLibs: true }));
     return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
         log('server >', req.method, req.url);
         if(req.url === '/$system') {

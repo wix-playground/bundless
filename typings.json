@@ -2,6 +2,7 @@
   "ambientDependencies": {
     "chai": "registry:dt/chai#3.4.0+20160317120654",
     "fs-extra": "registry:dt/fs-extra#0.0.0+20160319124112",
+    "lodash": "registry:dt/lodash#3.10.0+20160330154726",
     "mocha": "registry:dt/mocha#2.2.5+20160317120654",
     "node": "registry:dt/node#4.0.0+20160412142033",
     "object-assign": "registry:dt/object-assign#4.0.1+20160316155526",

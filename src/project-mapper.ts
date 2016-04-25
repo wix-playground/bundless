@@ -2,96 +2,64 @@ import {Serializable, Topology} from "./types";
 import fs = require('fs-extra');
 import path = require('path');
 import semver = require('semver');
-import { supportedNodeLibs, aliases, stubs, stubUrl, resolveNodePkg, nodeLibsRootDir } from "./node-support";
+import {aliases, stubUrl, nodeLibsRootDir, AliasValue} from "./node-support";
 import objectAssign = require('object-assign');
+import {collectDirInfo, DirInfo, traverseDirInfo} from './dir-structure';
+import _ = require('lodash');
 
-function collectRelevantDirs(rootDir: string, isRelevantDir: (fileList: string[]) => boolean): string[] {
-    const pkgList = [];
-    
-    function collect(dir: string) {
-        const list: string[] = fs.readdirSync(dir);
-        if(isRelevantDir(list)) {
-            pkgList.push(dir);
-        }
-        list.forEach(fileName => {
-            const fullName = path.resolve(dir, fileName);
-            const stat = fs.statSync(fullName);
-            if(stat.isDirectory()) {
-                collect(fullName);
+function getPackageVersion(pkg: DirInfo): string {
+    return pkg.children['package.json']['content']['version'] || '0.0.0';
+}
+
+function resolvePkgVersions(newPkg: DirInfo, existingPkg: DirInfo): DirInfo {
+    const newVersion = getPackageVersion(newPkg);
+    const existingVersion = getPackageVersion(existingPkg);
+    if(semver.gt(newVersion, existingVersion)) {
+        return newPkg;
+    } else {
+        return existingPkg;
+    }
+}
+
+function resolveMainPkgFile(dirInfo: DirInfo): string {
+    const pkgJson = dirInfo.children && dirInfo.children['package.json'] && dirInfo.children['package.json'].content;
+    if(pkgJson && pkgJson['main']) {
+        return pkgJson['main'];
+    } else {
+        return 'index.js';
+    }
+}
+
+
+function buildPkgDict(dirInfo: DirInfo, libMount: string): PackageDict {
+    const pkgDict: { [pkgName: string]: DirInfo } = {};
+    traverseDirInfo(dirInfo, (node: DirInfo) => {
+        if(node.name === 'package.json') {
+            const pkg: DirInfo = node.parent;
+            const pkgName = pkg.name;
+            const existingVersion = pkgDict[pkgName];
+            if(existingVersion) {
+                pkgDict[pkgName] = resolvePkgVersions(pkg, existingVersion);
+            } else {
+                pkgDict[pkgName] = pkg;
             }
-        });
-    }
-
-    try {
-        collect(rootDir);
-        return pkgList;
-    } catch(err) {
-        return [];
-    }
-}
-
-function resolvePackage(packagePath: string): PackageTuple {
-    let packageJson: Object;
-    try {
-        packageJson = JSON.parse(fs.readFileSync(path.resolve(packagePath, 'package.json')).toString());
-    } catch (err) {
-        packageJson = {};
-    }
-    if(packageJson['main']) {
-        return [packagePath, packageJson['main']];
-    } else {
-        return [packagePath, 'index.js'];
-    }
-}
-
-function getPackageVersion(topology: Topology, pkgPath: PackageTuple): string {
-    let packageJson: Object;
-    const packageJsonPath = path.join(topology.rootDir, 'node_modules', pkgPath[0].slice(topology.libMount.length + 1), 'package.json');
-    try {
-        packageJson = JSON.parse(
-            fs.readFileSync(packageJsonPath).toString()
-        );
-        return packageJson['version'] || '0.0.0';
-    } catch (err) {
-        return '0.0.0';
-    }
-}
-
-function resolvePkgVersion(topology: Topology, newPkgPath: PackageTuple, existingPkgPath: PackageTuple): PackageTuple {
-    if(existingPkgPath) {
-        const newVersion = getPackageVersion(topology, newPkgPath);
-        const existingVersion = getPackageVersion(topology, existingPkgPath);
-        if(semver.gt(newVersion, existingVersion)) {
-            return newPkgPath;
-        } else {
-            return existingPkgPath;
         }
-    } else {
-        return newPkgPath;
-    }
-}
-
-function override(pkgDict: PackageDict, key: string, localPath: string) {
-    if(key in pkgDict) {
-        pkgDict[key][1] = localPath;
-    }
-}
-
-function buildPkgDict(topology: Topology): PackageDict {
-    const headLength = topology.rootDir.length + 'node_modules'.length + 1;
-    const pkgList = collectRelevantDirs(path.join(topology.rootDir, 'node_modules'), fileList => fileList.indexOf('package.json')>-1);
-    const pkgDict: PackageDict = {};
-    pkgList.forEach((pkgPath) => {
-        const resolved: PackageTuple = resolvePackage(pkgPath);
-        const pkg = topology.libMount + resolved[0].slice(headLength);
-        const pkgKey = path.basename(pkgPath);
-        pkgDict[pkgKey] = resolvePkgVersion(topology, [pkg, resolved[1]], pkgDict[pkgKey]);
     });
-    return pkgDict;
+
+    const finalDict: PackageDict = {};
+    for(let pkgName in pkgDict) {
+        const pkg: DirInfo = pkgDict[pkgName];
+        const pkgPath = libMount + pkg.path.slice(dirInfo.path.length);
+        const mainFilePath = resolveMainPkgFile(pkg);
+        finalDict[pkgName] = [pkgPath, mainFilePath];
+    }
+    
+    return finalDict;
 }
 
 function buildNodePkgDict(): PackageDict {
-    const rootDir: string = path.dirname(require.resolve('node-libs-browser'));
+    return {};
+    /*const rootDir: string = path.dirname(require.resolve('node-libs-browser'));
     const headLength = rootDir.length + 'node_modules'.length + 1;
     const pkgList = collectRelevantDirs(path.join(rootDir, 'node_modules'), fileList => fileList.indexOf('package.json')>-1);
     const pkgDict: PackageDict = {};
@@ -106,36 +74,30 @@ function buildNodePkgDict(): PackageDict {
             pkgDict[nodeLib] = pkgDict[alias];
         }
     });
-    stubs.forEach(nodeLib => {
-        pkgDict[nodeLib] = stubUrl;
-    });
+
 
     pkgDict['_stream_transform'] = ['/$node/readable-stream', 'transform.js'];
     pkgDict['inherits'] = ['/$node/util/node_modules/inherits', 'inherits_browser.js'];
-    return pkgDict;
+    return pkgDict;*/
 }
 
-function collectDirs(rootDir: string, subDir: string, prefix: string): string [] {
-    const headLength = rootDir.length + subDir.length + 1;
-    return collectRelevantDirs(path.join(rootDir, subDir), fileList => fileList.indexOf('index.js')>-1 && fileList.indexOf('package.json') === -1)
-        .map(fullDir => prefix  + fullDir.slice(headLength) + '.js');
-}
-
-function buildDefIndexDirs(topology: Topology, includeNodeLibs: boolean): string[] {
-    return []
-        .concat(collectDirs(topology.rootDir, topology.srcDir, topology.srcMount))
-        .concat(collectDirs(topology.rootDir, 'node_modules', topology.libMount))
-        .concat(includeNodeLibs ? collectDirs(nodeLibsRootDir, 'node_modules', '/$node') : []);
+function collectIndexDirs(root: DirInfo, prefix: string): string[] {
+    const list: string[] = [];
+    traverseDirInfo(root, (node: DirInfo) => {
+        if(node.name === 'index.js' && !('package.json' in node.parent.children)) {
+            const url = prefix + node.parent.path.slice(root.path.length) + '.js';
+            list.push(url);
+        }
+    });
+    return list;
 }
 
 export type PackageTuple = [string, string];
 export type PackageDict = { [pkgName: string]: PackageTuple };
-export type SimplePackageMap = { [pkgName: string]: string };
 
-export interface ProjectMap extends Serializable {
+export interface ProjectMap {
     packages: PackageDict;
     dirs: string[];
-    nodelibs: SimplePackageMap;
 }
 
 export interface ProjectMapperOptions {
@@ -146,17 +108,54 @@ const defaultOptions: ProjectMapperOptions = {
     nodeLibs: false
 };
 
+function getNodeLibMap(): ProjectMap {
+    const nodeLibStructure: DirInfo = collectDirInfo(path.join(nodeLibsRootDir, 'node_modules'));
+    const packages: PackageDict = buildPkgDict(nodeLibStructure, '/$node');
+    _.forEach(aliases, (target: AliasValue, alias: string) => {
+        if(typeof target === 'string') {
+            packages[alias] = packages[target];
+        } else if(target === null) {
+            packages[alias] = stubUrl;
+        } else {
+            packages[alias] = target;
+        }
+    });
+
+    const dirs = collectIndexDirs(nodeLibStructure, '/$node');
+    return { packages, dirs };
+}
+
+function mergeProjectMaps(map1: ProjectMap, map2: ProjectMap): ProjectMap {
+    return {
+        packages: objectAssign({}, map1.packages, map2.packages),
+        dirs: map1.dirs.concat(map2.dirs)
+    };
+}
+
 export function getProjectMap(topology: Topology, options: ProjectMapperOptions = {}): ProjectMap {
     const actualOptions: ProjectMapperOptions = objectAssign({}, defaultOptions, options);
-    const nodePackages: PackageDict = actualOptions.nodeLibs
-        ? buildNodePkgDict()
-        : {};
+
+    const srcDirStructure: DirInfo = collectDirInfo(path.join(topology.rootDir, topology.srcDir));
+    const libDirStructure: DirInfo = collectDirInfo(path.join(topology.rootDir, 'node_modules'));
+    const packages: PackageDict = buildPkgDict(libDirStructure, topology.libMount);
+    const dirs: string[] = []
+        .concat(collectIndexDirs(srcDirStructure, topology.srcMount))
+        .concat(collectIndexDirs(libDirStructure, topology.libMount));
+
     const projectMap: ProjectMap = {
-        packages: objectAssign({}, buildPkgDict(topology), nodePackages),
-        dirs: buildDefIndexDirs(topology, actualOptions.nodeLibs),
-        nodelibs: {},
-        serialize: () => projectMapSerialized
+        packages,
+        dirs
     };
-    const projectMapSerialized: string = JSON.stringify(projectMap);
-    return projectMap;
+
+    if(actualOptions.nodeLibs) {
+        return mergeProjectMaps(projectMap, getNodeLibMap());
+    } else {
+        return projectMap;
+    }
+}
+
+export function makeSerializable(obj: Object): Serializable {
+    const serialized: string = JSON.stringify(obj);
+    obj['serialize'] = () => serialized;
+    return <Serializable>obj;
 }

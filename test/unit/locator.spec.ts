@@ -21,9 +21,7 @@ describe('locate', function () {
             dirs: [
                 '/a/b.js',
                 '/lib/pkgX/foo/bar.js'
-            ],
-            nodelibs: {},
-            serialize: null
+            ]
         };
         preProcess = locator.preProcess.bind(null, projectMap);
         postProcess = locator.postProcess.bind(null, projectMap, baseUrl);

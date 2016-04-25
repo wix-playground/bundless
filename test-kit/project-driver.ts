@@ -12,8 +12,12 @@ export class PackageBuilder {
         this.writeFile('package.json', packageJson);
     }
 
-    addFile(fileName: string, content: string = ''): PackageBuilder {
-        this.writeFile(fileName, content);
+    addFile(fileName: string, content: Object | string = ''): PackageBuilder {
+        if(typeof content === 'object') {
+            this.writeFile(fileName, JSON.stringify(content, null, 4));
+        } else {
+            this.writeFile(fileName, content);
+        }
         return this;
     }
 
