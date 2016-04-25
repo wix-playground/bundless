@@ -11,7 +11,7 @@ export interface DirInfo {
     parent: DirInfo;
 }
 
-const relevantFiles = ['package.json', 'bower.json', 'index.js'];
+const relevantFiles = ['package.json', 'bower.json', 'index.js', 'browser.js'];
 
 export function collectDirInfo(rootDir: string, parent: DirInfo = null): DirInfo {
     let stat: fs.Stats;
@@ -65,3 +65,8 @@ export function traverseDirInfo<T>(root: DirInfo, visitor: (node: DirInfo) => vo
         }
     }
 }
+
+export function containsFile(parent: DirInfo, childName: string): boolean {
+    return parent.children && childName in parent.children;
+}
+

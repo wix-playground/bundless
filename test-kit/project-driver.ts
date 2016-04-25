@@ -29,6 +29,22 @@ export class PackageBuilder {
         return this;
     }
 
+    addBowerMainFile(fileName: string, content: string = ''): PackageBuilder {
+        this.writeFile(fileName, content);
+        const bowerJson: Object = this.readJSON('bower.json');
+        bowerJson["main"] = fileName;
+        this.writeFile('bower.json', bowerJson);
+        return this;
+    }
+
+    addJspmMainFile(fileName: string, content: string = ''): PackageBuilder {
+        this.writeFile(fileName, content);
+        const packageJson: Object = this.readJSON('package.json');
+        packageJson["jspm"] = { "main": fileName };
+        this.writeFile('package.json', packageJson);
+        return this;
+    }
+
     addPackage(name: string, version?: string): PackageBuilder {
         const newPath: string = path.resolve(this.rootDir, 'node_modules', name);
         return new PackageBuilder(name, newPath, version);

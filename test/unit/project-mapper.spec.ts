@@ -85,6 +85,10 @@ describe('Project Mapper', function () {
             expect(projectMap.packages['child_process']).to.eql(['/$node', 'stub.js']);
         });
 
+        it('finds Node module with explicit browser version', function () {
+            expect(projectMap.packages['os']).to.eql(['/$node/os-browserify', 'browser.js']);
+        })
+
     });
 
     describe('describes default index files', function () {

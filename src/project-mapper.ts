@@ -4,7 +4,7 @@ import path = require('path');
 import semver = require('semver');
 import {aliases, stubUrl, nodeLibsRootDir, AliasValue} from "./node-support";
 import objectAssign = require('object-assign');
-import {collectDirInfo, DirInfo, traverseDirInfo} from './dir-structure';
+import {collectDirInfo, DirInfo, traverseDirInfo, containsFile} from './dir-structure';
 import _ = require('lodash');
 
 function getPackageVersion(pkg: DirInfo): string {
@@ -21,17 +21,22 @@ function resolvePkgVersions(newPkg: DirInfo, existingPkg: DirInfo): DirInfo {
     }
 }
 
-function resolveMainPkgFile(dirInfo: DirInfo): string {
+function resolveMainPkgFile(dirInfo: DirInfo, lookupBrowserJs: boolean = false): string {
     const pkgJson = dirInfo.children && dirInfo.children['package.json'] && dirInfo.children['package.json'].content;
-    if(pkgJson && pkgJson['main']) {
+    if(lookupBrowserJs && containsFile(dirInfo, 'browser.js')) {
+        return 'browser.js';
+    } else if(pkgJson && pkgJson['main']) {
         return pkgJson['main'];
     } else {
         return 'index.js';
     }
 }
 
+interface PackageDictOptions {
+    lookupBrowserJs?: boolean
+}
 
-function buildPkgDict(dirInfo: DirInfo, libMount: string): PackageDict {
+function buildPkgDict(dirInfo: DirInfo, libMount: string, options: PackageDictOptions = {}): PackageDict {
     const pkgDict: { [pkgName: string]: DirInfo } = {};
     traverseDirInfo(dirInfo, (node: DirInfo) => {
         if(node.name === 'package.json') {
@@ -50,35 +55,11 @@ function buildPkgDict(dirInfo: DirInfo, libMount: string): PackageDict {
     for(let pkgName in pkgDict) {
         const pkg: DirInfo = pkgDict[pkgName];
         const pkgPath = libMount + pkg.path.slice(dirInfo.path.length);
-        const mainFilePath = resolveMainPkgFile(pkg);
+        const mainFilePath = resolveMainPkgFile(pkg, options.lookupBrowserJs);
         finalDict[pkgName] = [pkgPath, mainFilePath];
     }
     
     return finalDict;
-}
-
-function buildNodePkgDict(): PackageDict {
-    return {};
-    /*const rootDir: string = path.dirname(require.resolve('node-libs-browser'));
-    const headLength = rootDir.length + 'node_modules'.length + 1;
-    const pkgList = collectRelevantDirs(path.join(rootDir, 'node_modules'), fileList => fileList.indexOf('package.json')>-1);
-    const pkgDict: PackageDict = {};
-    pkgList.forEach((pkgPath) => {
-        const resolved: PackageTuple = resolveNodePkg(pkgPath) || resolvePackage(pkgPath);
-        const pkg = '/$node' + resolved[0].slice(headLength);
-        pkgDict[path.basename(pkgPath)] = [pkg, resolved[1]];
-    });
-    supportedNodeLibs.forEach(nodeLib => {
-        const alias = aliases[nodeLib];
-        if(alias) {
-            pkgDict[nodeLib] = pkgDict[alias];
-        }
-    });
-
-
-    pkgDict['_stream_transform'] = ['/$node/readable-stream', 'transform.js'];
-    pkgDict['inherits'] = ['/$node/util/node_modules/inherits', 'inherits_browser.js'];
-    return pkgDict;*/
 }
 
 function collectIndexDirs(root: DirInfo, prefix: string): string[] {
@@ -110,7 +91,7 @@ const defaultOptions: ProjectMapperOptions = {
 
 function getNodeLibMap(): ProjectMap {
     const nodeLibStructure: DirInfo = collectDirInfo(path.join(nodeLibsRootDir, 'node_modules'));
-    const packages: PackageDict = buildPkgDict(nodeLibStructure, '/$node');
+    const packages: PackageDict = buildPkgDict(nodeLibStructure, '/$node', { lookupBrowserJs: true });
     _.forEach(aliases, (target: AliasValue, alias: string) => {
         if(typeof target === 'string') {
             packages[alias] = packages[target];
