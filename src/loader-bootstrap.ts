@@ -1,7 +1,9 @@
 declare const locator;
 declare const projectMap;
 
-const logginOn = false;
+const logginOn = !!window.location.search.match(/[?&]log=true/);
+const breakpointMatch = window.location.search.match(/[?&]bp=([^&]+)/);
+const breakpointAt = breakpointMatch ? breakpointMatch[1] : null;
 const log = logginOn ? console.log.bind(console, 'client >') : () => {};
 
 
@@ -13,6 +15,10 @@ System['normalize'] = function (name: string, parentName: string, parentAddress:
         .then(resolvedName => {
             const result = locator.postProcess(projectMap, System.baseURL, resolvedName);
             log(`postProcess() ${name}: ${resolvedName} -> ${result}`);
+            if(result === breakpointAt) {
+                name, parentName, parentAddress, newName, resolvedName, result;
+                debugger;
+            }
             return result;
         });
 };
