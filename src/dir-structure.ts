@@ -69,4 +69,3 @@ export function traverseDirInfo<T>(root: DirInfo, visitor: (node: DirInfo) => vo
 export function containsFile(parent: DirInfo, childName: string): boolean {
     return parent.children && childName in parent.children;
 }
-

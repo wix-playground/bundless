@@ -28,8 +28,8 @@ describe('Project Mapper', function () {
                 .addMainFile('dist/main.js')
                 .addPackage('foo').addMainFile('bar/far/f.js');
             project
-                .addPackage('bar').addMainFile('do/re/mi/fa.js')
-                .addPackage('sol').addMainFile('la/si/do.js');
+                .addPackage('bar').addBowerMainFile('do/re/mi/fa.js')
+                .addPackage('sol').addJspmMainFile('la/si/do.js');
 
             projectMap = getProjectMap(topology);
         });

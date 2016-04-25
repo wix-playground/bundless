@@ -21,14 +21,26 @@ function resolvePkgVersions(newPkg: DirInfo, existingPkg: DirInfo): DirInfo {
     }
 }
 
+function resolveBowerMainFile(dirInfo: DirInfo): string {
+    return _.property<DirInfo, string>(['children', 'bower.json', 'content', 'main'])(dirInfo);
+}
+
+function resolveJspmMainFile(dirInfo: DirInfo): string {
+    return _.property<DirInfo, string>(['children', 'package.json', 'content', 'jspm', 'main'])(dirInfo);
+}
+
+function resolvePackageJsonMainFile(dirInfo: DirInfo): string {
+    return _.property<DirInfo, string>(['children', 'package.json', 'content', 'main'])(dirInfo);
+}
+
 function resolveMainPkgFile(dirInfo: DirInfo, lookupBrowserJs: boolean = false): string {
-    const pkgJson = dirInfo.children && dirInfo.children['package.json'] && dirInfo.children['package.json'].content;
     if(lookupBrowserJs && containsFile(dirInfo, 'browser.js')) {
         return 'browser.js';
-    } else if(pkgJson && pkgJson['main']) {
-        return pkgJson['main'];
     } else {
-        return 'index.js';
+        return resolveBowerMainFile(dirInfo) ||
+                resolveJspmMainFile(dirInfo) ||
+                resolvePackageJsonMainFile(dirInfo) ||
+                'index.js';
     }
 }
 

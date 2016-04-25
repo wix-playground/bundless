@@ -30,10 +30,7 @@ export class PackageBuilder {
     }
 
     addBowerMainFile(fileName: string, content: string = ''): PackageBuilder {
-        this.writeFile(fileName, content);
-        const bowerJson: Object = this.readJSON('bower.json');
-        bowerJson["main"] = fileName;
-        this.writeFile('bower.json', bowerJson);
+        this.writeFile('bower.json', { main: fileName });
         return this;
     }
 
