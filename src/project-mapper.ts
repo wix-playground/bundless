@@ -22,7 +22,12 @@ function resolvePkgVersions(newPkg: DirInfo, existingPkg: DirInfo): DirInfo {
 }
 
 function resolveBowerMainFile(dirInfo: DirInfo): string {
-    return _.property<DirInfo, string>(['children', 'bower.json', 'content', 'main'])(dirInfo);
+    const result = _.property<DirInfo, string | string[]>(['children', 'bower.json', 'content', 'main'])(dirInfo);
+    if(typeof result === 'string') {
+        return result;
+    } else {
+        return result[0];
+    }
 }
 
 function resolveJspmMainFile(dirInfo: DirInfo): string {
@@ -67,6 +72,7 @@ function buildPkgDict(dirInfo: DirInfo, libMount: string, options: PackageDictOp
     for(let pkgName in pkgDict) {
         const pkg: DirInfo = pkgDict[pkgName];
         const pkgPath = libMount + pkg.path.slice(dirInfo.path.length);
+        if(pkgName === 'js-base64') debugger;
         const mainFilePath = resolveMainPkgFile(pkg, options.lookupBrowserJs);
         finalDict[pkgName] = [pkgPath, mainFilePath];
     }
