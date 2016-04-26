@@ -18,7 +18,8 @@ describe('Project Mapper', function () {
             rootDir: project.getPath(),
             srcDir: 'dist',
             srcMount: '/local',
-            libMount: '/lib'
+            libMount: '/lib',
+            nodeMount: '/$node'
         }
     });
 

@@ -9,4 +9,5 @@ export interface Topology {
     srcDir: string;
     srcMount: string;
     libMount: string;
+    nodeMount: string;
 }

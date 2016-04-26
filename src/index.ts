@@ -12,17 +12,17 @@ import {getProjectMap, makeSerializable} from './project-mapper';
 import {Topology, Serializable} from "./types";
 import {log} from "./logger";
 import {resolveUrlToFile} from "./url-resolver";
-import {resolveNodeUrl} from "./node-support";
+import * as nodeSupport from "./node-support";
 
-function getLoaderConfig(server: Server): Object & Serializable {
+function getLoaderConfig(server: Server, topology: Topology): Object & Serializable {
     const hostname = server.address().address;
     const baseURL = `https://${hostname === '::' ? 'localhost' : hostname}:${server.address().port}`;
     return {
         baseURL,
         defaultJSExtensions: false,
         meta: {
-            '$node/*': {
-                deps: ['/$node-globals']
+            [topology.nodeMount.slice(1) + '/*']: {
+                deps: [topology.nodeMount + '/' + nodeSupport.globals]
             }
         },
         serialize: function () {
@@ -34,7 +34,7 @@ function getLoaderConfig(server: Server): Object & Serializable {
 const responseHeaders = {
     'Content-type': 'application/javascript',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE'
+    'Access-Control-Allow-Methods': 'GET'
 };
 
 function serveFile(res: ServerResponse, source: string | Readable) {
@@ -89,6 +89,14 @@ function serveSystem(res: ServerResponse, projectMap: Serializable, loaderConfig
     ], res);
 }
 
+function testMountPoint(mountPoint: string, fullUrl:string): string {
+    const mountPointLength = mountPoint.length;
+    if(fullUrl.slice(0, mountPointLength) === mountPoint && fullUrl.charAt(mountPointLength) === '/') {
+        return fullUrl.slice(mountPointLength + 1);
+    } else {
+        return null;
+    }
+}
 
 /* TODO: normalize topology (leading/trailing slashes) */
 export default function bundless(topology: Topology): Server {
@@ -96,20 +104,13 @@ export default function bundless(topology: Topology): Server {
     let loaderConfig: Serializable;
     const projectMap: Serializable = makeSerializable(getProjectMap(topology, { nodeLibs: true }));
     return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
+        let urlPath:string;
         log('server >', req.method, req.url);
         if(req.url === '/$system') {
-            loaderConfig = loaderConfig || getLoaderConfig(this);
+            loaderConfig = loaderConfig || getLoaderConfig(this, topology);
             serveSystem(res, projectMap, loaderConfig);
-        } else if(req.url === '/$node-globals.js'){
-            res.writeHead(200, responseHeaders);
-            res.end(`
-                window['Buffer'] = window['Buffer'] || require('buffer').Buffer;
-                window['process'] = window['process'] || require('process');
-                process.version = '0.0.0';
-                process.cwd = function () { return ''; };
-            `);
-        } else if(req.url.slice(0,7) === '/$node/') {
-            serveFile(res, resolveNodeUrl(req.url));
+        } else if(urlPath = testMountPoint(topology.nodeMount, req.url)) {
+            serveFile(res, nodeSupport.resolveNodeUrl(urlPath));
         } else {
             const filePath: string = resolveUrlToFile(topology, req.url);
             if(filePath) {
@@ -125,10 +126,11 @@ export default function bundless(topology: Topology): Server {
 
 if(require.main === module) {
     const topology = {
-        rootDir: process.cwd(),
+        rootDir: '../core3-editor',
         srcDir: 'dist',
         srcMount: '/modules',
-        libMount: '/lib'
+        libMount: '/lib',
+        nodeMount: '/$node'
     };
     bundless(topology).listen(4000, function () {
         console.log(`Bundless listening at ${this.address().address}:${this.address().port}`);

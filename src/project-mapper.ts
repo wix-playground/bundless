@@ -105,20 +105,20 @@ const defaultOptions: ProjectMapperOptions = {
     nodeLibs: false
 };
 
-function getNodeLibMap(): ProjectMap {
+function getNodeLibMap(nodeMount: string): ProjectMap {
     const nodeLibStructure: DirInfo = collectDirInfo(path.join(nodeSupport.rootDir, 'node_modules'));
-    const packages: PackageDict = buildPkgDict(nodeLibStructure, '/$node', { lookupBrowserJs: true });
+    const packages: PackageDict = buildPkgDict(nodeLibStructure, nodeMount, { lookupBrowserJs: true });
     _.forEach(nodeSupport.aliases, (target: nodeSupport.AliasValue, alias: string) => {
         if(typeof target === 'string') {
             packages[alias] = packages[target];
         } else if(target === null) {
-            packages[alias] = ['/$node', nodeSupport.stubPath];
+            packages[alias] = [nodeMount, nodeSupport.stubPath];
         } else {
-            packages[alias] = target;
+            packages[alias] = [ nodeMount + '/' + target[0], target[1]];
         }
     });
 
-    const dirs = collectIndexDirs(nodeLibStructure, '/$node');
+    const dirs = collectIndexDirs(nodeLibStructure, nodeMount);
     return { packages, dirs };
 }
 
@@ -145,7 +145,7 @@ export function getProjectMap(topology: Topology, options: ProjectMapperOptions 
     };
 
     if(actualOptions.nodeLibs) {
-        return mergeProjectMaps(projectMap, getNodeLibMap());
+        return mergeProjectMaps(projectMap, getNodeLibMap(topology.nodeMount));
     } else {
         return projectMap;
     }

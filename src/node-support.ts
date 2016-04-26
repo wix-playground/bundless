@@ -60,8 +60,8 @@ export const aliases: AliasDict = {
     "vm": "vm-browserify",
     "zlib": "browserify-zlib",
 
-    "_stream_transform" : ['/$node/readable-stream', 'transform.js'],
-    "inherits": ['/$node/util/node_modules/inherits', 'inherits_browser.js'],
+    "_stream_transform" : ['readable-stream', 'transform.js'],
+    "inherits": ['util/node_modules/inherits', 'inherits_browser.js'],
 
     // stubs:
     "child_process": null,
@@ -77,12 +77,15 @@ export const aliases: AliasDict = {
 };
 
 export const stubPath = 'node-stub.js';
+export const globals = 'global.js';
 
-export function resolveNodeUrl(url: string): string {
-    if(url === '/$node/node-stub.js') {
+export function resolveNodeUrl(urlPath: string): string {
+    if(urlPath === stubPath) {
         return path.resolve(__dirname, './node-stub.js');
+    } else if(urlPath === globals) {
+        return path.resolve(__dirname, './node-globals.js');
     } else {
-        return path.join(rootDir, 'node_modules', url.slice(7));
+        return path.join(rootDir, 'node_modules', urlPath);
     }
 }
 

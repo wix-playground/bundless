@@ -10,7 +10,8 @@ describe('url resolver', function () {
                 rootDir: '/root',
                 srcDir: 'dist',
                 srcMount: '/',
-                libMount: '/node_modules'
+                libMount: '/node_modules',
+                nodeMount: '/$node'
             };
             resolve = resolveUrlToFile.bind(null, topology);
         });
@@ -32,7 +33,8 @@ describe('url resolver', function () {
                 rootDir: '/root',
                 srcDir: 'dist',
                 srcMount: '/local',
-                libMount: '/lib'
+                libMount: '/lib',
+                nodeMount: '/$node'
             };
             resolve = resolveUrlToFile.bind(null, topology);
         });
