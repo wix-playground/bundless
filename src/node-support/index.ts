@@ -1,4 +1,4 @@
-import {PackageTuple} from "./project-mapper";
+import {PackageTuple} from "./../project-mapper";
 import fs = require('fs');
 import path = require('path');
 

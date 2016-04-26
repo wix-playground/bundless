@@ -1,4 +1,4 @@
-import {ProjectMap} from "./project-mapper";
+import {ProjectMap} from "./../project-mapper";
 
 function getExt(fileName: string): string {
     const slashIndex = fileName.lastIndexOf('/');

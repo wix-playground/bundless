@@ -1,8 +1,8 @@
 import {expect} from 'chai';
 import {ProjectMap} from "../../src/project-mapper";
-import * as locator from '../../src/locator';
-import {joinUrl} from "../../src/locator";
-import {extractPackageNames} from "../../src/locator";
+import * as locator from '../../src/client/locator';
+import {joinUrl} from "../../src/client/locator";
+import {extractPackageNames} from "../../src/client/locator";
 describe('locate', function () {
     let projectMap: ProjectMap;
     let preProcess: { (name: string, parentName?: string, parentAddress?: string): string };

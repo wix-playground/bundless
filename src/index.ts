@@ -82,10 +82,10 @@ function serveSystem(res: ServerResponse, projectMap: Serializable, loaderConfig
         ';\n\n',
         'var locator = {};\n\n',
         '(function (exports){',
-        streamSystemModule('./locator'),
+        streamSystemModule('./client/locator'),
         '\n\n})(locator);\n\n',
         'System.config(', loaderConfig.serialize(), ')\n\n',
-        streamSystemModule('./loader-bootstrap')
+        streamSystemModule('./client/loader-bootstrap')
     ], res);
 }
 
