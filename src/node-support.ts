@@ -82,7 +82,7 @@ export const stubUrl: PackageTuple = ['/$node', 'stub.js'];
 export function serveStub(): Readable {
     const stream = new Readable();
     stream._read = () => {};
-    stream.push('module.exports = null;');
+    stream.push('module.exports = {};');
     stream.push(null);
     return stream;
 }

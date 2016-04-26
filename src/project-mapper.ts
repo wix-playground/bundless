@@ -3,7 +3,6 @@ import fs = require('fs-extra');
 import path = require('path');
 import semver = require('semver');
 import {aliases, stubUrl, nodeLibsRootDir, AliasValue} from "./node-support";
-import objectAssign = require('object-assign');
 import {collectDirInfo, DirInfo, traverseDirInfo, containsFile} from './dir-structure';
 import _ = require('lodash');
 
@@ -24,8 +23,8 @@ function resolvePkgVersions(newPkg: DirInfo, existingPkg: DirInfo): DirInfo {
 function resolveBowerMainFile(dirInfo: DirInfo): string {
     const result = _.property<DirInfo, string | string[]>(['children', 'bower.json', 'content', 'main'])(dirInfo);
     if(typeof result === 'string') {
-        return result;
-    } else {
+        return result;  
+    } else if(typeof result === 'object') {
         return result[0];
     }
 }
@@ -125,13 +124,13 @@ function getNodeLibMap(): ProjectMap {
 
 function mergeProjectMaps(map1: ProjectMap, map2: ProjectMap): ProjectMap {
     return {
-        packages: objectAssign({}, map1.packages, map2.packages),
+        packages: _.assign<any, PackageDict, PackageDict, PackageDict>({}, map1.packages, map2.packages),
         dirs: map1.dirs.concat(map2.dirs)
     };
 }
 
 export function getProjectMap(topology: Topology, options: ProjectMapperOptions = {}): ProjectMap {
-    const actualOptions: ProjectMapperOptions = objectAssign({}, defaultOptions, options);
+    const actualOptions: ProjectMapperOptions = _.assign({}, defaultOptions, options);
 
     const srcDirStructure: DirInfo = collectDirInfo(path.join(topology.rootDir, topology.srcDir));
     const libDirStructure: DirInfo = collectDirInfo(path.join(topology.rootDir, 'node_modules'));
