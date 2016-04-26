@@ -8,11 +8,12 @@ import {ServerResponse} from "http";
 import stream = require('stream');
 import {Readable} from "stream";
 import {getProjectMap, makeSerializable} from './project-mapper';
-import {Topology, Serializable} from "./types";
+import {Topology, Serializable, TopologyOverrides} from "./types";
 import {log} from "./logger";
 import {resolveUrlToFile, testMountPoint} from "./url-resolver";
 import * as nodeSupport from "./node-support";
 import {serveSystem} from "./system";
+import _ = require('lodash');
 
 function getLoaderConfig(server: Server, topology: Topology): Object & Serializable {
     const hostname = server.address().address;
@@ -52,10 +53,19 @@ function serveFile(res: ServerResponse, source: string | Readable) {
 
 }
 
+const defaultTopology: Topology = {
+    rootDir: process.cwd(),
+    srcDir: 'dist',
+    srcMount: '/modules',
+    libMount: '/lib',
+    nodeMount: '/$node',
+    systemMount: '/$system'
+};
 
 
 /* TODO: normalize topology (leading/trailing slashes) */
-export default function bundless(topology: Topology): Server {
+export default function bundless(topologyOverrides: TopologyOverrides = {}): Server {
+    const topology: Topology = _.assign<Object, Topology, TopologyOverrides, Topology>({}, defaultTopology, topologyOverrides);
     const config = spdyKeys;
     let loaderConfig: Serializable;
     const projectMap: Serializable = makeSerializable(getProjectMap(topology, { nodeLibs: true }));
@@ -82,15 +92,7 @@ export default function bundless(topology: Topology): Server {
 }
 
 if(require.main === module) {
-    const topology = {
-        rootDir: process.cwd(),
-        srcDir: 'dist',
-        srcMount: '/modules',
-        libMount: '/lib',
-        nodeMount: '/$node',
-        systemMount: '/$system'
-    };
-    bundless(topology).listen(4000, function () {
+    bundless().listen(4000, function () {
         console.log(`Bundless listening at ${this.address().address}:${this.address().port}`);
     });
 }

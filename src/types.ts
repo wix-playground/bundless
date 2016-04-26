@@ -12,3 +12,12 @@ export interface Topology {
     nodeMount: string;
     systemMount: string;
 }
+
+export interface TopologyOverrides {
+    rootDir?: string;
+    srcDir?: string;
+    srcMount?: string;
+    libMount?: string;
+    nodeMount?: string;
+    systemMount?: string;
+}
