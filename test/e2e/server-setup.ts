@@ -10,7 +10,8 @@ export function setupBundlessServer(project: PackageBuilder, cb: Function) {
         srcDir: 'dist',
         srcMount: '/',
         libMount: '/node_modules',
-        nodeMount: '/$node'
+        nodeMount: '/$node',
+        systemMount: '/$system'
     });
     bundlessServer.listen(port, host, err => {
         if(err) {

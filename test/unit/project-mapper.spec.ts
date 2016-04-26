@@ -19,7 +19,8 @@ describe('Project Mapper', function () {
             srcDir: 'dist',
             srcMount: '/local',
             libMount: '/lib',
-            nodeMount: '/$node'
+            nodeMount: '/$node',
+            systemMount: '/$system'
         }
     });
 

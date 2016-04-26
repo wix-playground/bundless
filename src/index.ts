@@ -7,12 +7,12 @@ import {ServerRequest} from "http";
 import {ServerResponse} from "http";
 import stream = require('stream');
 import {Readable} from "stream";
-import {Writable} from "stream";
 import {getProjectMap, makeSerializable} from './project-mapper';
 import {Topology, Serializable} from "./types";
 import {log} from "./logger";
-import {resolveUrlToFile} from "./url-resolver";
+import {resolveUrlToFile, testMountPoint} from "./url-resolver";
 import * as nodeSupport from "./node-support";
+import {serveSystem} from "./system";
 
 function getLoaderConfig(server: Server, topology: Topology): Object & Serializable {
     const hostname = server.address().address;
@@ -52,51 +52,7 @@ function serveFile(res: ServerResponse, source: string | Readable) {
 
 }
 
-function streamSystemModule(moduleId): Readable {
-    return fs.createReadStream(require.resolve(moduleId));
-}
 
-function seqStreams(inputStreams: Array<Readable | string>, outputStream: Writable): void {
-    const input: Readable | string = inputStreams[0];
-    if(input) {
-        if(typeof input === 'string') {
-            outputStream.write(input);
-            seqStreams(inputStreams.slice(1), outputStream);
-        } else {
-            input.on('end', function () {
-                seqStreams(inputStreams.slice(1), outputStream);
-            });
-            input.pipe(outputStream, { end: false });
-        }
-    } else {
-        outputStream.end();
-    }
-}
-
-function serveSystem(res: ServerResponse, projectMap: Serializable, loaderConfig: Serializable) {
-    res.writeHead(200, responseHeaders);
-    seqStreams([
-        streamSystemModule('systemjs/dist/system.js'),
-        'var projectMap = ',
-        projectMap.serialize(),
-        ';\n\n',
-        'var locator = {};\n\n',
-        '(function (exports){',
-        streamSystemModule('./client/locator'),
-        '\n\n})(locator);\n\n',
-        'System.config(', loaderConfig.serialize(), ')\n\n',
-        streamSystemModule('./client/loader-bootstrap')
-    ], res);
-}
-
-function testMountPoint(mountPoint: string, fullUrl:string): string {
-    const mountPointLength = mountPoint.length;
-    if(fullUrl.slice(0, mountPointLength) === mountPoint && fullUrl.charAt(mountPointLength) === '/') {
-        return fullUrl.slice(mountPointLength + 1);
-    } else {
-        return null;
-    }
-}
 
 /* TODO: normalize topology (leading/trailing slashes) */
 export default function bundless(topology: Topology): Server {
@@ -106,8 +62,9 @@ export default function bundless(topology: Topology): Server {
     return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
         let urlPath:string;
         log('server >', req.method, req.url);
-        if(req.url === '/$system') {
+        if(req.url === topology.systemMount) {
             loaderConfig = loaderConfig || getLoaderConfig(this, topology);
+            res.writeHead(200, responseHeaders);
             serveSystem(res, projectMap, loaderConfig);
         } else if(urlPath = testMountPoint(topology.nodeMount, req.url)) {
             serveFile(res, nodeSupport.resolveNodeUrl(urlPath));
@@ -126,11 +83,12 @@ export default function bundless(topology: Topology): Server {
 
 if(require.main === module) {
     const topology = {
-        rootDir: '../core3-editor',
+        rootDir: process.cwd(),
         srcDir: 'dist',
         srcMount: '/modules',
         libMount: '/lib',
-        nodeMount: '/$node'
+        nodeMount: '/$node',
+        systemMount: '/$system'
     };
     bundless(topology).listen(4000, function () {
         console.log(`Bundless listening at ${this.address().address}:${this.address().port}`);

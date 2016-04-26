@@ -1,6 +1,16 @@
 import {Topology} from "./types";
 import path = require('path');
 
+export function testMountPoint(mountPoint: string, fullUrl:string): string {
+    const mountPointLength = mountPoint.length;
+    if(fullUrl.slice(0, mountPointLength) === mountPoint && fullUrl.charAt(mountPointLength) === '/') {
+        return fullUrl.slice(mountPointLength + 1);
+    } else {
+        return null;
+    }
+}
+
+
 export function resolveUrlToFile(topology: Topology, url: string): string {
     const prefixIndex = url.indexOf('/', 1);
     const prefix = prefixIndex === -1 ? '/' : url.slice(0, prefixIndex);
