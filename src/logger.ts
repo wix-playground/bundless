@@ -1,4 +1,6 @@
 export function log(...args): any {
-    console.log.apply(console, args);
+    if(process.env.BUNDLESS_DEBUG) {
+        console.log.apply(console, args);
+    }
     return args[0];
 }

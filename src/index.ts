@@ -12,7 +12,7 @@ import {getProjectMap, makeSerializable} from './project-mapper';
 import {Topology, Serializable} from "./types";
 import {log} from "./logger";
 import {resolveUrlToFile} from "./url-resolver";
-import { serveStub, resolveNodeUrl} from "./node-support";
+import {resolveNodeUrl} from "./node-support";
 
 function getLoaderConfig(server: Server): Object & Serializable {
     const hostname = server.address().address;
@@ -50,15 +50,6 @@ function serveFile(res: ServerResponse, source: string | Readable) {
     });
     stream.pipe(res);
 
-}
-
-function serveNodeLib(url: string, res: ServerResponse) {
-    if(url === '/$node/stub.js' || url === '/$node/browser.js') {
-        const stub: Readable = serveStub();
-        serveFile(res, stub);
-    } else {
-        serveFile(res, resolveNodeUrl(url));
-    }
 }
 
 function streamSystemModule(moduleId): Readable {
@@ -118,7 +109,7 @@ export default function bundless(topology: Topology): Server {
                 process.cwd = function () { return ''; };
             `);
         } else if(req.url.slice(0,7) === '/$node/') {
-            serveNodeLib(req.url, res);
+            serveFile(res, resolveNodeUrl(req.url));
         } else {
             const filePath: string = resolveUrlToFile(topology, req.url);
             if(filePath) {
@@ -134,7 +125,7 @@ export default function bundless(topology: Topology): Server {
 
 if(require.main === module) {
     const topology = {
-        rootDir: '/Users/tobisek/projects/core3-editor',
+        rootDir: process.cwd(),
         srcDir: 'dist',
         srcMount: '/modules',
         libMount: '/lib'

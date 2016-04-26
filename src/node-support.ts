@@ -1,11 +1,10 @@
 import {PackageTuple} from "./project-mapper";
-import {Readable} from "stream";
 import fs = require('fs');
 import path = require('path');
 
-export const nodeLibsRootDir: string = path.dirname(require.resolve('node-libs-browser'));
+export const rootDir: string = path.dirname(require.resolve('node-libs-browser'));
 
-export const supportedNodeLibs = [
+export const supportedLibs = [
     "assert",
     "buffer",
     "child_process",
@@ -77,17 +76,13 @@ export const aliases: AliasDict = {
     "tls": null
 };
 
-export const stubUrl: PackageTuple = ['/$node', 'stub.js'];
-
-export function serveStub(): Readable {
-    const stream = new Readable();
-    stream._read = () => {};
-    stream.push('module.exports = {};');
-    stream.push(null);
-    return stream;
-}
+export const stubPath = 'node-stub.js';
 
 export function resolveNodeUrl(url: string): string {
-    return path.join(nodeLibsRootDir, 'node_modules', url.slice(7));
+    if(url === '/$node/node-stub.js') {
+        return path.resolve(__dirname, './node-stub.js');
+    } else {
+        return path.join(rootDir, 'node_modules', url.slice(7));
+    }
 }
 

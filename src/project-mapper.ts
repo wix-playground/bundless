@@ -2,7 +2,7 @@ import {Serializable, Topology} from "./types";
 import fs = require('fs-extra');
 import path = require('path');
 import semver = require('semver');
-import {aliases, stubUrl, nodeLibsRootDir, AliasValue} from "./node-support";
+import * as nodeSupport from "./node-support";
 import {collectDirInfo, DirInfo, traverseDirInfo, containsFile} from './dir-structure';
 import _ = require('lodash');
 
@@ -106,13 +106,13 @@ const defaultOptions: ProjectMapperOptions = {
 };
 
 function getNodeLibMap(): ProjectMap {
-    const nodeLibStructure: DirInfo = collectDirInfo(path.join(nodeLibsRootDir, 'node_modules'));
+    const nodeLibStructure: DirInfo = collectDirInfo(path.join(nodeSupport.rootDir, 'node_modules'));
     const packages: PackageDict = buildPkgDict(nodeLibStructure, '/$node', { lookupBrowserJs: true });
-    _.forEach(aliases, (target: AliasValue, alias: string) => {
+    _.forEach(nodeSupport.aliases, (target: nodeSupport.AliasValue, alias: string) => {
         if(typeof target === 'string') {
             packages[alias] = packages[target];
         } else if(target === null) {
-            packages[alias] = stubUrl;
+            packages[alias] = ['/$node', nodeSupport.stubPath];
         } else {
             packages[alias] = target;
         }
