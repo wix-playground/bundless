@@ -17,7 +17,7 @@ import _ = require('lodash');
 
 function getLoaderConfig(server: Server, topology: Topology): Object & Serializable {
     const hostname = server.address().address;
-    const baseURL = `https://${hostname === '::' ? 'localhost' : hostname}:${server.address().port}`;
+    const baseURL = `https://${hostname === '::' ? '127.0.0.1' : hostname}:${server.address().port}`;
     return {
         baseURL,
         defaultJSExtensions: false,
@@ -38,19 +38,57 @@ const responseHeaders = {
     'Access-Control-Allow-Methods': 'GET'
 };
 
-function serveFile(res: ServerResponse, source: string | Readable) {
-    const stream = typeof source === 'string'
-        ? fs.createReadStream(source)
-        : source;
-    stream.once('data', () => {
-        res.writeHead(200, responseHeaders);
-    });
-    stream.once('error', err => {
-        res.writeHead(404, responseHeaders);
-        res.end(err.toString());
-    });
-    stream.pipe(res);
+function getResponseHeaders(source: string | Readable, cb: (err: Error, headers: Object) => void): void  {
+    if(typeof source === 'string') {
+        fs.stat(source, (err, stat: fs.Stats) => {
+            if(err) {
+                cb.call(null, err);
+            } else {
+                cb.call(null, null, _.assign({}, responseHeaders, {
+                    'Last-Modified': stat.mtime.toUTCString(),
+                    'Cache-Control': 'public, must-revalidate, max-age=0'
+                }));
+            }
+        });
+    } else {
+        cb.call(null, null, responseHeaders);
+    }
+}
 
+function serveFile(res: ServerResponse, source: string | Readable): void {
+    getResponseHeaders(source, (err: Error, responseHeaders: Object) => {
+        if(err) {
+            res.writeHead(404);
+            res.end();
+        } else {
+            const stream = typeof source === 'string'
+                ? fs.createReadStream(source)
+                : source;
+            stream.once('data', () => {
+                res.writeHead(200, responseHeaders);
+            });
+            stream.once('error', err => {
+                res.writeHead(404, responseHeaders);
+                res.end(err.toString());
+            });
+            stream.pipe(res);
+        }
+    });
+}
+
+function validateCache(req: ServerRequest, filePath: string, cb: (err: Error, cacheValid: boolean)=>void): void {
+    if(req.headers['if-modified-since']) {
+        const cachedTime = Date.parse(req.headers['if-modified-since']);
+        fs.stat(filePath, (err: Error, stat: fs.Stats) => {
+            if(err) {
+                cb.call(null, null, false);
+            } else {
+                cb.call(null, null, stat.mtime.getTime() <= cachedTime);
+            }
+        });
+    } else {
+        cb.call(null, null, false);
+    }
 }
 
 const defaultTopology: Topology = {
@@ -81,7 +119,13 @@ export default function bundless(topologyOverrides: TopologyOverrides = {}): Ser
         } else {
             const filePath: string = resolveUrlToFile(topology, req.url);
             if(filePath) {
-                serveFile(res, filePath);
+                validateCache(req, filePath, (err: Error, isCacheValid: boolean) => {
+                    if(isCacheValid) {
+                        res.writeHead(304);
+                    } else {
+                        serveFile(res, filePath);
+                    }
+                });
             } else {
                 res.writeHead(404, responseHeaders);
                 res.end();
