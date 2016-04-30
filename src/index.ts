@@ -8,7 +8,7 @@ import {ServerResponse} from "http";
 import stream = require('stream');
 import {Readable} from "stream";
 import {getProjectMap, makeSerializable} from './project-mapper';
-import {Topology, Serializable, TopologyOverrides} from "./types";
+import {Topology, Serializable, ServerConfig} from "./types";
 import {log} from "./logger";
 import {resolveUrlToFile, testMountPoint} from "./url-resolver";
 import * as nodeSupport from "./node-support";
@@ -91,33 +91,33 @@ function validateCache(req: ServerRequest, filePath: string, cb: (err: Error, ca
     }
 }
 
-const defaultTopology: Topology = {
+const defaultConfiguration: ServerConfig = {
     rootDir: process.cwd(),
     srcDir: 'dist',
     srcMount: '/modules',
     libMount: '/lib',
     nodeMount: '/$node',
-    systemMount: '/$system'
+    systemMount: '/$system',
+    ssl: spdyKeys
 };
 
 
 /* TODO: normalize topology (leading/trailing slashes) */
-export default function bundless(topologyOverrides: TopologyOverrides = {}): Server {
-    const topology: Topology = _.assign<Object, Topology, TopologyOverrides, Topology>({}, defaultTopology, topologyOverrides);
-    const config = spdyKeys;
+export default function bundless(config: ServerConfig = {}): Server {
+    const serverConfig: ServerConfig = _.assign({}, defaultConfiguration, config);
     let loaderConfig: Serializable;
-    const projectMap: Serializable = makeSerializable(getProjectMap(topology, { nodeLibs: true }));
-    return spdy.createServer(config, function (req: ServerRequest, res: ServerResponse) {
+    const projectMap: Serializable = makeSerializable(getProjectMap(serverConfig, { nodeLibs: true }));
+    return spdy.createServer(serverConfig.ssl, function (req: ServerRequest, res: ServerResponse) {
         let urlPath:string;
         log('server >', req.method, req.url);
-        if(req.url === topology.systemMount) {
-            loaderConfig = loaderConfig || getLoaderConfig(this, topology);
+        if(req.url === serverConfig.systemMount) {
+            loaderConfig = loaderConfig || getLoaderConfig(this, serverConfig);
             res.writeHead(200, responseHeaders);
             serveSystem(res, projectMap, loaderConfig);
-        } else if(urlPath = testMountPoint(topology.nodeMount, req.url)) {
+        } else if(urlPath = testMountPoint(serverConfig.nodeMount, req.url)) {
             serveFile(res, nodeSupport.resolveNodeUrl(urlPath));
         } else {
-            const filePath: string = resolveUrlToFile(topology, req.url);
+            const filePath: string = resolveUrlToFile(serverConfig, req.url);
             if(filePath) {
                 validateCache(req, filePath, (err: Error, isCacheValid: boolean) => {
                     if(isCacheValid) {
