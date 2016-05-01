@@ -122,6 +122,7 @@ export default function bundless(config: ServerConfig = {}): Server {
                 validateCache(req, filePath, (err: Error, isCacheValid: boolean) => {
                     if(isCacheValid) {
                         res.writeHead(304);
+                        res.end();
                     } else {
                         serveFile(res, filePath);
                     }
