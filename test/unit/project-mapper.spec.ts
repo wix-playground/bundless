@@ -84,7 +84,7 @@ describe('Project Mapper', function () {
         });
 
         it('finds stubbed Node module', function () {
-            expect(projectMap.packages['child_process']).to.eql(['/$node', 'stub.js']);
+            expect(projectMap.packages['child_process']).to.eql(['/$node', 'node-stub.js']);
         });
 
         it('finds Node module with explicit browser version', function () {
