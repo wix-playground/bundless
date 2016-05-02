@@ -22,4 +22,5 @@ export interface Certificate {
 
 export interface ServerConfig extends Topology {
     ssl?: Certificate;
+    forceHttp1?: boolean;
 }

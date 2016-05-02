@@ -5,6 +5,7 @@ import fs = require('fs');
 import path = require('path');
 import {ServerRequest} from "http";
 import {ServerResponse} from "http";
+import * as http from "http";
 import stream = require('stream');
 import {Readable} from "stream";
 import {getProjectMap, makeSerializable} from './project-mapper';
@@ -15,15 +16,16 @@ import * as nodeSupport from "./node-support";
 import {serveSystem} from "./system";
 import _ = require('lodash');
 
-function getLoaderConfig(server: Server, topology: Topology): Object & Serializable {
+function getLoaderConfig(server: Server, serverConfig: ServerConfig): Object & Serializable {
+    const protocol = serverConfig.forceHttp1 ? 'http' : 'https';
     const hostname = server.address().address;
-    const baseURL = `https://${hostname === '::' ? '127.0.0.1' : hostname}:${server.address().port}`;
+    const baseURL = `${protocol}://${hostname === '::' ? '127.0.0.1' : hostname}:${server.address().port}`;
     return {
         baseURL,
         defaultJSExtensions: false,
         meta: {
-            [topology.nodeMount.slice(1) + '/*']: {
-                deps: [topology.nodeMount + '/' + nodeSupport.globals]
+            [serverConfig.nodeMount.slice(1) + '/*']: {
+                deps: [serverConfig.nodeMount + '/' + nodeSupport.globals]
             }
         },
         serialize: function () {
@@ -70,6 +72,7 @@ function serveFile(res: ServerResponse, source: string | Readable): void {
             stream.once('error', err => {
                 res.writeHead(404, responseHeaders);
                 res.end(err.toString());
+                this.end();
             });
             stream.pipe(res);
         }
@@ -91,6 +94,7 @@ function validateCache(req: ServerRequest, filePath: string, cb: (err: Error, ca
     }
 }
 
+
 const defaultConfiguration: ServerConfig = {
     rootDir: process.cwd(),
     srcDir: 'dist',
@@ -98,7 +102,8 @@ const defaultConfiguration: ServerConfig = {
     libMount: '/lib',
     nodeMount: '/$node',
     systemMount: '/$system',
-    ssl: spdyKeys
+    ssl: spdyKeys,
+    forceHttp1: false
 };
 
 
@@ -107,7 +112,8 @@ export default function bundless(config: ServerConfig = {}): Server {
     const serverConfig: ServerConfig = _.assign({}, defaultConfiguration, config);
     let loaderConfig: Serializable;
     const projectMap: Serializable = makeSerializable(getProjectMap(serverConfig, { nodeLibs: true }));
-    return spdy.createServer(serverConfig.ssl, function (req: ServerRequest, res: ServerResponse) {
+
+    const handler = function (req: ServerRequest, res: ServerResponse) {
         let urlPath:string;
         log('server >', req.method, req.url);
         if(req.url === serverConfig.systemMount) {
@@ -133,7 +139,10 @@ export default function bundless(config: ServerConfig = {}): Server {
             }
 
         }
-    });
+    };
+    return serverConfig.forceHttp1
+        ? http.createServer(handler)
+        : spdy.createServer(serverConfig.ssl, handler);
 }
 
 if(require.main === module) {
