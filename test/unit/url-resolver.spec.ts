@@ -1,6 +1,8 @@
 import {resolveUrlToFile} from "../../src/url-resolver";
 import {expect} from 'chai';
 import {Topology} from "../../src/types";
+import path = require('path');
+
 describe('url resolver', function () {
     describe('with default topology', function () {
         let topology: Topology;
@@ -18,11 +20,11 @@ describe('url resolver', function () {
         });
 
         it('resolves source file', function () {
-            expect(resolve('/a.js')).to.equal('/root/dist/a.js');
+            expect(resolve('/a.js')).to.equal(path.normalize('/root/dist/a.js'));
         });
 
         it('resolves package file', function () {
-            expect(resolve('/node_modules/pkgX/foo/bar/a.js')).to.equal('/root/node_modules/pkgX/foo/bar/a.js');
+            expect(resolve('/node_modules/pkgX/foo/bar/a.js')).to.equal(path.normalize('/root/node_modules/pkgX/foo/bar/a.js'));
         });
     });
 
@@ -42,11 +44,11 @@ describe('url resolver', function () {
         });
 
         it('resolves source file', function () {
-            expect(resolve('/local/a.js')).to.equal('/root/dist/a.js');
+            expect(resolve('/local/a.js')).to.equal(path.normalize('/root/dist/a.js'));
         });
 
         it('resolves package file', function () {
-            expect(resolve('/lib/pkgX/foo/bar/a.js')).to.equal('/root/node_modules/pkgX/foo/bar/a.js');
+            expect(resolve('/lib/pkgX/foo/bar/a.js')).to.equal(path.normalize('/root/node_modules/pkgX/foo/bar/a.js'));
         });
     });
 
