@@ -3,7 +3,7 @@
   "version": "0.0.4",
   "description": "Experimental bundle-free dependency server",
   "main": "./dist/src/index.js",
-  "author": "Jiri Toisek <jiri@wix.com> (https://github.com/tobich)",
+  "author": "Jiri Tobisek <jiri@wix.com> (https://github.com/tobich)",
   "license": "SEE LICENSE IN LICENSE.md",
   "private": false,
   "directories": {
