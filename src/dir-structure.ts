@@ -1,5 +1,6 @@
 import fs = require('fs-extra');
 import path = require('path');
+import os = require('os');
 
 export type DirInfoDict = { [name: string]: DirInfo };
 
@@ -13,13 +14,19 @@ export interface DirInfo {
 
 const relevantFiles = ['package.json', 'bower.json', 'index.js', 'browser.js'];
 
+function normalizePath(pathName: string): string {
+    return os.platform() === 'win32'
+        ? pathName.replace(/\\/g, () => '/')
+        : pathName;
+}
+
 export function collectDirInfo(rootDir: string, parent: DirInfo = null): DirInfo {
     let stat: fs.Stats;
     const name = path.basename(rootDir);
     const parentPath = parent ? parent.path : '';
     const item: DirInfo = {
         name,
-        path: path.join(parentPath, name),
+        path: normalizePath(path.join(parentPath, name)),
         parent
     };
     try {
