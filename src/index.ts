@@ -26,6 +26,9 @@ function getLoaderConfig(server: Server, serverConfig: ServerConfig): Object & S
         meta: {
             [serverConfig.nodeMount.slice(1) + '/*']: {
                 deps: [serverConfig.nodeMount + '/' + nodeSupport.globals]
+            },
+            '*': {
+                format: 'cjs'
             }
         },
         serialize: function () {
