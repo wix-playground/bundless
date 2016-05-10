@@ -45,7 +45,7 @@
     "typings": "0.8.1"
   },
   "dependencies": {
-    "lodash": "4.11.2",
+    "lodash": "4.12.0",
     "node-libs-browser": "1.0.0",
     "semver": "5.1.0",
     "spdy": "3.3.2",
