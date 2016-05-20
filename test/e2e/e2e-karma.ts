@@ -1,9 +1,7 @@
 import {PackageBuilder} from "../../test-kit/project-driver";
 import {setupProject} from "./project-setup";
 import {setupBundlessServer} from "./server-setup";
-
-const Server = require('karma').Server;
-
+import {Server} from 'karma';
 
 const project: PackageBuilder = setupProject();
 
