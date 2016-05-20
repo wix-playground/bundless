@@ -42,14 +42,14 @@
     "source-map-support": "0.4.0",
     "tmp": "0.0.28",
     "typescript": "1.8.10",
-    "typings": "0.8.1"
+    "typings": "1.0.4"
   },
   "dependencies": {
     "lodash": "4.12.0",
     "node-libs-browser": "1.0.0",
     "semver": "5.1.0",
-    "spdy": "3.3.2",
+    "spdy": "3.3.3",
     "spdy-keys": "0.0.0",
-    "systemjs": "0.19.27"
+    "systemjs": "0.19.28"
   }
 }
