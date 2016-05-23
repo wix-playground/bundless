@@ -12,7 +12,7 @@ export interface DirInfo {
     parent: DirInfo;
 }
 
-const relevantFiles = ['package.json', 'bower.json', 'index.js', 'browser.js'];
+const relevantFiles = ['package.json', 'bower.json', 'index.js'];
 
 function normalizePath(pathName: string): string {
     return os.platform() === 'win32'
