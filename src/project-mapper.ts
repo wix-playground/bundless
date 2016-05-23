@@ -42,15 +42,11 @@ function resolvePackageJsonMainFile(dirInfo: DirInfo): string {
     }
 }
 
-function resolveMainPkgFile(dirInfo: DirInfo, lookupBrowserJs: boolean = false): string {
-    if(lookupBrowserJs && containsFile(dirInfo, 'browser.js')) {
-        return 'browser.js';
-    } else {
-        return resolveBowerMainFile(dirInfo) ||
-                resolveJspmMainFile(dirInfo) ||
-                resolvePackageJsonMainFile(dirInfo) ||
-                'index.js';
-    }
+function resolveMainPkgFile(dirInfo: DirInfo): string {
+    return resolveBowerMainFile(dirInfo) ||
+        resolveJspmMainFile(dirInfo) ||
+        resolvePackageJsonMainFile(dirInfo) ||
+        'index.js';
 }
 
 interface PackageDictOptions {
@@ -76,7 +72,7 @@ function buildPkgDict(dirInfo: DirInfo, libMount: string, options: PackageDictOp
     for(let pkgName in pkgDict) {
         const pkg: DirInfo = pkgDict[pkgName];
         const pkgPath = libMount + pkg.path.slice(dirInfo.path.length);
-        const mainFilePath = resolveMainPkgFile(pkg, options.lookupBrowserJs);
+        const mainFilePath = resolveMainPkgFile(pkg);
         finalDict[pkgName] = [pkgPath, mainFilePath];
     }
     
