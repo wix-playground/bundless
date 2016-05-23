@@ -2,7 +2,7 @@ import {PackageTuple} from "./../project-mapper";
 import fs = require('fs');
 import path = require('path');
 
-export const rootDir: string = path.dirname(require.resolve('node-libs-browser'));
+export const rootDir: string = path.resolve(__dirname, '../../../node-libs');
 
 export const supportedLibs = [
     "assert",
@@ -61,7 +61,6 @@ export const aliases: AliasDict = {
     "zlib": "browserify-zlib",
 
     "_stream_transform" : ['readable-stream', 'transform.js'],
-    "inherits": ['util/node_modules/inherits', 'inherits_browser.js'],
 
     // stubs:
     "child_process": null,

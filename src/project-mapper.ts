@@ -34,7 +34,12 @@ function resolveJspmMainFile(dirInfo: DirInfo): string {
 }
 
 function resolvePackageJsonMainFile(dirInfo: DirInfo): string {
-    return _.property<DirInfo, string>(['children', 'package.json', 'content', 'main'])(dirInfo);
+    const browserProp = _.property<DirInfo, Object | string>(['children', 'package.json', 'content', 'browser'])(dirInfo);
+    if(typeof browserProp === 'string') {
+        return browserProp;
+    } else {
+        return _.property<DirInfo, string>(['children', 'package.json', 'content', 'main'])(dirInfo);
+    }
 }
 
 function resolveMainPkgFile(dirInfo: DirInfo, lookupBrowserJs: boolean = false): string {

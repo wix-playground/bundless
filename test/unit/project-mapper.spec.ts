@@ -30,6 +30,10 @@ describe('Project Mapper', function () {
                 .addMainFile('dist/main.js')
                 .addPackage('foo').addMainFile('bar/far/f.js');
             project
+                .addPackage('la')
+                    .addMainFile('index.js')
+                    .addBrowserMainFile('browser.js');
+            project
                 .addPackage('bar').addBowerMainFile('do/re/mi/fa.js')
                 .addPackage('sol').addJspmMainFile('la/si/do.js');
 
@@ -39,6 +43,7 @@ describe('Project Mapper', function () {
         it('as correct project map', function () {
             expect(projectMap.packages).to.eql({
                 'foo': ['/lib/foo', 'bar/far/f.js'],
+                'la':  ['/lib/la', 'browser.js'],
                 'bar': ['/lib/bar', 'do/re/mi/fa.js'],
                 'sol': ['/lib/bar/node_modules/sol', 'la/si/do.js']
             });
