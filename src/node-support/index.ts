@@ -1,8 +1,8 @@
-import {PackageTuple} from "./../project-mapper";
+import {PackageTuple, PackageDict} from "./../project-mapper";
 import fs = require('fs');
 import path = require('path');
 
-export const rootDir: string = path.dirname(require.resolve('node-libs-browser'));
+export const rootDir: string = path.resolve(__dirname, '../../../node-libs');
 
 export const supportedLibs = [
     "assert",
@@ -40,7 +40,7 @@ export const supportedLibs = [
     "zlib"
 ];
 
-export type AliasValue = string | PackageTuple;
+export type AliasValue = string | ((dict: PackageDict) => PackageTuple);
 export type AliasDict = { [alias: string]: AliasValue }
 export const aliases: AliasDict = {
     "console": "console-browserify",
@@ -60,9 +60,6 @@ export const aliases: AliasDict = {
     "vm": "vm-browserify",
     "zlib": "browserify-zlib",
 
-    "_stream_transform" : ['readable-stream', 'transform.js'],
-    "inherits": ['util/node_modules/inherits', 'inherits_browser.js'],
-
     // stubs:
     "child_process": null,
     "cluster": null,
@@ -73,7 +70,10 @@ export const aliases: AliasDict = {
     "net": null,
     "readline": null,
     "repl": null,
-    "tls": null
+    "tls": null,
+
+    // Dynamic aliases
+    "_stream_transform" : dict => [dict['readable-stream'][0], 'transform.js']
 };
 
 export const stubPath = 'node-stub.js';

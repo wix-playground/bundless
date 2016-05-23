@@ -34,7 +34,12 @@ function resolveJspmMainFile(dirInfo: DirInfo): string {
 }
 
 function resolvePackageJsonMainFile(dirInfo: DirInfo): string {
-    return _.property<DirInfo, string>(['children', 'package.json', 'content', 'main'])(dirInfo);
+    const browserProp = _.property<DirInfo, Object | string>(['children', 'package.json', 'content', 'browser'])(dirInfo);
+    if(typeof browserProp === 'string') {
+        return browserProp;
+    } else {
+        return _.property<DirInfo, string>(['children', 'package.json', 'content', 'main'])(dirInfo);
+    }
 }
 
 function resolveMainPkgFile(dirInfo: DirInfo, lookupBrowserJs: boolean = false): string {
@@ -108,13 +113,13 @@ const defaultOptions: ProjectMapperOptions = {
 function getNodeLibMap(nodeMount: string): ProjectMap {
     const nodeLibStructure: DirInfo = collectDirInfo(path.join(nodeSupport.rootDir, 'node_modules'));
     const packages: PackageDict = buildPkgDict(nodeLibStructure, nodeMount, { lookupBrowserJs: true });
-    _.forEach(nodeSupport.aliases, (target: nodeSupport.AliasValue, alias: string) => {
-        if(typeof target === 'string') {
-            packages[alias] = packages[target];
-        } else if(target === null) {
+    _.forEach(nodeSupport.aliases, (aliasValue: nodeSupport.AliasValue, alias: string) => {
+        if(typeof aliasValue === 'string') {
+            packages[alias] = packages[aliasValue];
+        } else if(aliasValue === null) {
             packages[alias] = [nodeMount, nodeSupport.stubPath];
         } else {
-            packages[alias] = [ nodeMount + '/' + target[0], target[1]];
+            packages[alias] = aliasValue(packages);
         }
     });
 

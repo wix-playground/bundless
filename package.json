@@ -18,7 +18,8 @@
     "build": "npm run clean && tsc",
     "prestart": "npm run build",
     "start": "node dist/src/index.js",
-    "prepublish": "typings install"
+    "prepublish": "typings install",
+    "postinstall": "cd node-libs && npm install"
   },
   "repository": {
     "type": "git",
@@ -46,7 +47,6 @@
   },
   "dependencies": {
     "lodash": "4.12.0",
-    "node-libs-browser": "1.0.0",
     "semver": "5.1.0",
     "spdy": "3.3.3",
     "spdy-keys": "0.0.0",

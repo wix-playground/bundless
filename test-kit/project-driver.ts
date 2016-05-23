@@ -21,12 +21,21 @@ export class PackageBuilder {
         return this;
     }
 
-    addMainFile(fileName: string, content: string = ''): PackageBuilder {
-        this.writeFile(fileName, content);
+    addMainFileToPackageJson(fileName: string, property: string): PackageBuilder {
         const packageJson: Object = this.readJSON('package.json');
-        packageJson["main"] = fileName;
+        packageJson[property] = fileName;
         this.writeFile('package.json', packageJson);
         return this;
+    }
+
+    addMainFile(fileName: string, content: string = ''): PackageBuilder {
+        this.writeFile(fileName, content);
+        return this.addMainFileToPackageJson(fileName, 'main');
+    }
+
+    addBrowserMainFile(fileName: string, content: string = ''): PackageBuilder {
+        this.writeFile(fileName, content);
+        return this.addMainFileToPackageJson(fileName, 'browser');
     }
 
     addBowerMainFile(fileName: string, content: string = ''): PackageBuilder {
