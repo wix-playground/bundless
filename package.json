@@ -1,9 +1,9 @@
 {
   "name": "bundless",
-  "version": "0.0.4",
+  "version": "0.0.9",
   "description": "Experimental bundle-free dependency server",
   "main": "./dist/src/index.js",
-  "author": "Jiri Toisek <jiri@wix.com> (https://github.com/tobich)",
+  "author": "Jiri Tobisek <jiri@wix.com> (https://github.com/tobich)",
   "license": "SEE LICENSE IN LICENSE.md",
   "private": false,
   "directories": {
@@ -43,13 +43,13 @@
     "source-map-support": "0.4.0",
     "tmp": "0.0.28",
     "typescript": "1.8.10",
-    "typings": "0.8.1"
+    "typings": "1.0.4"
   },
   "dependencies": {
-    "lodash": "4.11.2",
+    "lodash": "4.12.0",
     "semver": "5.1.0",
-    "spdy": "3.3.2",
+    "spdy": "3.3.3",
     "spdy-keys": "0.0.0",
-    "systemjs": "0.19.27"
+    "systemjs": "0.19.28"
   }
 }
