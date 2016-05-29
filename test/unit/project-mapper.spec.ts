@@ -34,7 +34,6 @@ describe('Project Mapper', function () {
                     .addMainFile('index.js')
                     .addBrowserMainFile('browser.js');
             project
-                .addPackage('bar').addBowerMainFile('do/re/mi/fa.js')
                 .addPackage('sol').addJspmMainFile('la/si/do.js');
 
             projectMap = getProjectMap(topology);
@@ -44,8 +43,7 @@ describe('Project Mapper', function () {
             expect(projectMap.packages).to.eql({
                 'foo': ['/lib/foo', 'bar/far/f.js'],
                 'la':  ['/lib/la', 'browser.js'],
-                'bar': ['/lib/bar', 'do/re/mi/fa.js'],
-                'sol': ['/lib/bar/node_modules/sol', 'la/si/do.js']
+                'sol': ['/lib/sol', 'la/si/do.js']
             });
         });
     });

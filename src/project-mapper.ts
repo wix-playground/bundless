@@ -20,6 +20,7 @@ function resolvePkgVersions(newPkg: DirInfo, existingPkg: DirInfo): DirInfo {
     }
 }
 
+/** @deprecated */
 function resolveBowerMainFile(dirInfo: DirInfo): string {
     const result = _.property<DirInfo, string | string[]>(['children', 'bower.json', 'content', 'main'])(dirInfo);
     if(typeof result === 'string') {
@@ -43,8 +44,7 @@ function resolvePackageJsonMainFile(dirInfo: DirInfo): string {
 }
 
 function resolveMainPkgFile(dirInfo: DirInfo): string {
-    return resolveBowerMainFile(dirInfo) ||
-        resolveJspmMainFile(dirInfo) ||
+    return resolveJspmMainFile(dirInfo) ||
         resolvePackageJsonMainFile(dirInfo) ||
         'index.js';
 }
