@@ -98,21 +98,24 @@ function validateCache(req: ServerRequest, filePath: string, cb: (err: Error, ca
 }
 
 
-const defaultConfiguration: ServerConfig = {
-    rootDir: process.cwd(),
-    srcDir: 'dist',
-    srcMount: '/modules',
-    libMount: '/lib',
-    nodeMount: '/$node',
-    systemMount: '/$system',
-    ssl: spdyKeys,
-    forceHttp1: false
-};
+export function getConfiguration(overrides: ServerConfig = {}): ServerConfig {
+    const defaultConfig = {
+        rootDir: process.cwd(),
+        srcDir: 'dist',
+        srcMount: '/modules',
+        libMount: '/lib',
+        nodeMount: '/$node',
+        systemMount: '/$system',
+        ssl: spdyKeys,
+        forceHttp1: false
+    };
+    return _.assign(defaultConfig, overrides);
+}
 
 
 /* TODO: normalize topology (leading/trailing slashes) */
 export default function bundless(config: ServerConfig = {}): Server {
-    const serverConfig: ServerConfig = _.assign({}, defaultConfiguration, config);
+    const serverConfig: ServerConfig = getConfiguration(config);
     let loaderConfig: Serializable;
     const projectMap: Serializable = makeSerializable(getProjectMap(serverConfig, { nodeLibs: true }));
 
