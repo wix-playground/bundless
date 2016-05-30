@@ -98,7 +98,7 @@ function validateCache(req: ServerRequest, filePath: string, cb: (err: Error, ca
 }
 
 
-export function getDefaultConfiguration(overrides: ServerConfig = {}): ServerConfig {
+export function getConfiguration(overrides: ServerConfig = {}): ServerConfig {
     const defaultConfig = {
         rootDir: process.cwd(),
         srcDir: 'dist',
@@ -115,7 +115,7 @@ export function getDefaultConfiguration(overrides: ServerConfig = {}): ServerCon
 
 /* TODO: normalize topology (leading/trailing slashes) */
 export default function bundless(config: ServerConfig = {}): Server {
-    const serverConfig: ServerConfig = getDefaultConfiguration(config);
+    const serverConfig: ServerConfig = getConfiguration(config);
     let loaderConfig: Serializable;
     const projectMap: Serializable = makeSerializable(getProjectMap(serverConfig, { nodeLibs: true }));
 
