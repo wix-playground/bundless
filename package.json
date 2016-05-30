@@ -1,6 +1,6 @@
 {
   "name": "bundless",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Experimental bundle-free dependency server",
   "main": "./dist/src/index.js",
   "author": "Jiri Tobisek <jiri@wix.com> (https://github.com/tobich)",
