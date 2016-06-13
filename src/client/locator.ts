@@ -34,7 +34,10 @@ function resolveAsPackage(projectMap: ProjectMap, filePath: string): string {
 }
 
 function isDefaultIndexDir(projectMap: ProjectMap, filePath: string): boolean {
-    return projectMap.dirs.indexOf(filePath) > -1;
+    const key = filePath.charAt(filePath.length - 1) === '/'
+        ? filePath.slice(0, -1) + '.js'
+        : filePath;
+    return projectMap.dirs.indexOf(key) > -1;
 }
 
 function stripJsExt(pathName: string): string {

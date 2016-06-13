@@ -58,8 +58,10 @@ describe('locate', function () {
     describe('postProcess()', function () {
         it('identifies default index file in a directory', function () {
             expect(postProcess(`${baseUrl}a/b.js`)).to.equal(`${baseUrl}a/b/index.js`);
+            expect(postProcess(`${baseUrl}a/b/`)).to.equal(`${baseUrl}a/b/index.js`);
             expect(postProcess(`${baseUrl}a/c.js`)).to.equal(`${baseUrl}a/c.js`);
             expect(postProcess(`${baseUrl}lib/pkgX/foo/bar.js`)).to.equal(`${baseUrl}lib/pkgX/foo/bar/index.js`);
+            expect(postProcess(`${baseUrl}lib/pkgX/foo/bar/`)).to.equal(`${baseUrl}lib/pkgX/foo/bar/index.js`);
         });
 
         it('resolves result of Systen.normalize() as package', function () {

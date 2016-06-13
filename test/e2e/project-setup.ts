@@ -19,10 +19,12 @@ export function setupProject(): PackageBuilder {
             var y = require("pkgY");
             var data = require("./data.json");
             var bar = require("./foo/bar");
+            var qux = require("./foo/bar/baz/qux");
          `)
         .addFile('sub.js','')
         .addFile('data.json', '{ "wtf": "data" }')
         .addFile('foo/bar/index.js')
+        .addFile('foo/bar/baz/qux.js', 'var bar = require("..");')
         .addPackage('pkgY').addMainFile('y.js', '');
 
 
