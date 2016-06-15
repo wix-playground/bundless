@@ -1,8 +1,8 @@
-import {PackageTuple, PackageDict} from "./../project-mapper";
+import {PackageTuple, PackageDict} from "./project-mapper";
 import fs = require('fs');
 import path = require('path');
 
-export const rootDir: string = path.resolve(__dirname, '../../../node-libs');
+export const rootDir: string = path.resolve(__dirname, '../../node-libs');
 
 export const supportedLibs = [
     "assert",
@@ -76,16 +76,6 @@ export const aliases: AliasDict = {
     "_stream_transform" : dict => [dict['readable-stream'][0], 'transform.js']
 };
 
-export const stubPath = 'node-stub.js';
-export const globals = 'global.js';
-
-export function resolveNodeUrl(urlPath: string): string {
-    if(urlPath === stubPath) {
-        return path.resolve(__dirname, './node-stub.js');
-    } else if(urlPath === globals) {
-        return path.resolve(__dirname, './node-globals.js');
-    } else {
-        return path.join(rootDir, 'node_modules', urlPath);
-    }
-}
+export const stubPath = 'node-support/stub.js';
+export const globals = 'node-support/globals.js';
 

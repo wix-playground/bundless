@@ -109,14 +109,11 @@ export default function bundless(config: ServerConfig = {}): Server {
     const projectMap: string = JSON.stringify(getProjectMap(serverConfig, { nodeLibs: true }));
 
     const handler = function (req: ServerRequest, res: ServerResponse) {
-        let urlPath:string;
         log('server >', req.method, req.url);
         if(req.url === serverConfig.systemMount) {
             loaderConfig = loaderConfig || getLoaderConfig(this, serverConfig);
             res.writeHead(200, responseHeaders);
             serveBootstrap(serverConfig, projectMap, loaderConfig)(res);
-        } else if(urlPath = testMountPoint(serverConfig.nodeMount, req.url)) {
-            serveFile(res, nodeSupport.resolveNodeUrl(urlPath));
         } else {
             const filePath: string = resolveUrlToFile(serverConfig, req.url);
             if(filePath) {

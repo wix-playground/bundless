@@ -1,5 +1,6 @@
 import {Topology} from "./types";
 import path = require('path');
+import * as nodeSupport from './node-support';
 
 export function testMountPoint(mountPoint: string, fullUrl:string): string {
     const mountPointLength = mountPoint.length;
@@ -19,6 +20,8 @@ export function resolveUrlToFile(topology: Topology, url: string): string {
         return path.join(topology.rootDir, topology.srcDir, filePath);
     } else if(prefix === topology.libMount) {
         return path.join(topology.rootDir, 'node_modules', filePath);
+    } else if(prefix === topology.nodeMount) {
+        return path.join(nodeSupport.rootDir, 'node_modules', filePath);
     } else {
         return null;
     }
