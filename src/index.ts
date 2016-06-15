@@ -9,20 +9,19 @@ import * as http from "http";
 import stream = require('stream');
 import {Readable} from "stream";
 import {getProjectMap} from './project-mapper';
-import {Topology, ServerConfig} from "./types";
+import {ServerConfig} from "./types";
 import {log} from "./logger";
-import {resolveUrlToFile, testMountPoint} from "./url-resolver";
-import * as nodeSupport from "./node-support";
+import {resolveUrlToFile} from "./url-resolver";
 import {serveBootstrap, Pipe} from "./system";
 import _ = require('lodash');
+import {Writable} from "stream";
 
 function getLoaderConfig(server: Server, serverConfig: ServerConfig): Object {
     const protocol = serverConfig.forceHttp1 ? 'http' : 'https';
     const hostname = server.address().address;
     const baseURL = `${protocol}://${hostname === '::' ? '127.0.0.1' : hostname}:${server.address().port}`;
     return {
-        baseURL,
-        defaultJSExtensions: false
+        baseURL
     }
 }
 
@@ -100,6 +99,14 @@ export function getConfiguration(overrides: ServerConfig = {}): ServerConfig {
     };
     return _.assign(defaultConfig, overrides);
 }
+
+export function writeBootstrap(output: Writable, config: ServerConfig = {}, systemConfigOverrides: Object, exportSymbol = "$bundless"): void {
+    const serverConfig: ServerConfig = getConfiguration(config);
+    const projectMap: string = JSON.stringify(getProjectMap(serverConfig, { nodeLibs: true }));
+    serveBootstrap(serverConfig, projectMap, systemConfigOverrides, exportSymbol)(output);
+}
+
+export {rootDir as nodeRoot} from './node-support';
 
 
 /* TODO: normalize topology (leading/trailing slashes) */

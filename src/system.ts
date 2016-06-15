@@ -31,6 +31,7 @@ export interface Pipe {
 
 export function serveBootstrap(topology: Topology, projectMap: string | Readable, systemConfigOverrides?:Object, exportSymbol = '$bundless'): Pipe {
     const defaultSystemConfig = {
+        defaultJSExtensions: false,
         meta: {
             [topology.nodeMount.slice(1) + '/*']: {
                 deps: [topology.nodeMount + '/' + nodeSupport.globals]
@@ -56,7 +57,7 @@ export function serveBootstrap(topology: Topology, projectMap: string | Readable
             '\n\n})(locator);\n\n',
             `System.config(${systemConfig})\n\n`,
             streamSystemModule('./client/loader-bootstrap'),
-            `\n\n\n};\n${exportSymbol}(System);`
+            `\n\nreturn projectMap;\n};`
         ], res);
     }
     
