@@ -18,6 +18,7 @@ describe('e2e test', function () {
         this.timeout(100000);
         return loadScript('https://127.0.0.1:3000/$system')
              .then(() => {
+                 window['$bundless'](System);
                  return System.import('main.js');
              });
     });

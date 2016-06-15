@@ -1,4 +1,4 @@
-import {Serializable, Topology} from "./types";
+import {Topology} from "./types";
 import fs = require('fs-extra');
 import path = require('path');
 import semver = require('semver');
@@ -150,10 +150,4 @@ export function getProjectMap(topology: Topology, options: ProjectMapperOptions 
     } else {
         return projectMap;
     }
-}
-
-export function makeSerializable(obj: Object): Serializable {
-    const serialized: string = JSON.stringify(obj);
-    obj['serialize'] = () => serialized;
-    return <Serializable>obj;
 }

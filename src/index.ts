@@ -8,32 +8,20 @@ import {ServerResponse} from "http";
 import * as http from "http";
 import stream = require('stream');
 import {Readable} from "stream";
-import {getProjectMap, makeSerializable} from './project-mapper';
-import {Topology, Serializable, ServerConfig} from "./types";
+import {getProjectMap} from './project-mapper';
+import {ServerConfig} from "./types";
 import {log} from "./logger";
-import {resolveUrlToFile, testMountPoint} from "./url-resolver";
-import * as nodeSupport from "./node-support";
-import {serveSystem} from "./system";
+import {resolveUrlToFile} from "./url-resolver";
+import {serveBootstrap, Pipe} from "./system";
 import _ = require('lodash');
+import {Writable} from "stream";
 
-function getLoaderConfig(server: Server, serverConfig: ServerConfig): Object & Serializable {
+function getLoaderConfig(server: Server, serverConfig: ServerConfig): Object {
     const protocol = serverConfig.forceHttp1 ? 'http' : 'https';
     const hostname = server.address().address;
     const baseURL = `${protocol}://${hostname === '::' ? '127.0.0.1' : hostname}:${server.address().port}`;
     return {
-        baseURL,
-        defaultJSExtensions: false,
-        meta: {
-            [serverConfig.nodeMount.slice(1) + '/*']: {
-                deps: [serverConfig.nodeMount + '/' + nodeSupport.globals]
-            },
-            '*': {
-                format: 'cjs'
-            }
-        },
-        serialize: function () {
-            return JSON.stringify(this);
-        }
+        baseURL
     }
 }
 
@@ -112,22 +100,27 @@ export function getConfiguration(overrides: ServerConfig = {}): ServerConfig {
     return _.assign(defaultConfig, overrides);
 }
 
+export function writeBootstrap(output: Writable, config: ServerConfig = {}, systemConfigOverrides: Object, exportSymbol = "$bundless"): void {
+    const serverConfig: ServerConfig = getConfiguration(config);
+    const projectMap: string = JSON.stringify(getProjectMap(serverConfig, { nodeLibs: true }));
+    serveBootstrap(serverConfig, projectMap, systemConfigOverrides, exportSymbol)(output);
+}
+
+export {rootDir as nodeRoot} from './node-support';
+
 
 /* TODO: normalize topology (leading/trailing slashes) */
 export default function bundless(config: ServerConfig = {}): Server {
     const serverConfig: ServerConfig = getConfiguration(config);
-    let loaderConfig: Serializable;
-    const projectMap: Serializable = makeSerializable(getProjectMap(serverConfig, { nodeLibs: true }));
+    let loaderConfig: Object;
+    const projectMap: string = JSON.stringify(getProjectMap(serverConfig, { nodeLibs: true }));
 
     const handler = function (req: ServerRequest, res: ServerResponse) {
-        let urlPath:string;
         log('server >', req.method, req.url);
         if(req.url === serverConfig.systemMount) {
             loaderConfig = loaderConfig || getLoaderConfig(this, serverConfig);
             res.writeHead(200, responseHeaders);
-            serveSystem(res, projectMap, loaderConfig);
-        } else if(urlPath = testMountPoint(serverConfig.nodeMount, req.url)) {
-            serveFile(res, nodeSupport.resolveNodeUrl(urlPath));
+            serveBootstrap(serverConfig, projectMap, loaderConfig)(res);
         } else {
             const filePath: string = resolveUrlToFile(serverConfig, req.url);
             if(filePath) {
