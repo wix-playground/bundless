@@ -8,32 +8,21 @@ import {ServerResponse} from "http";
 import * as http from "http";
 import stream = require('stream');
 import {Readable} from "stream";
-import {getProjectMap, makeSerializable} from './project-mapper';
-import {Topology, Serializable, ServerConfig} from "./types";
+import {getProjectMap} from './project-mapper';
+import {Topology, ServerConfig} from "./types";
 import {log} from "./logger";
 import {resolveUrlToFile, testMountPoint} from "./url-resolver";
 import * as nodeSupport from "./node-support";
-import {serveSystem} from "./system";
+import {serveBootstrap, Pipe} from "./system";
 import _ = require('lodash');
 
-function getLoaderConfig(server: Server, serverConfig: ServerConfig): Object & Serializable {
+function getLoaderConfig(server: Server, serverConfig: ServerConfig): Object {
     const protocol = serverConfig.forceHttp1 ? 'http' : 'https';
     const hostname = server.address().address;
     const baseURL = `${protocol}://${hostname === '::' ? '127.0.0.1' : hostname}:${server.address().port}`;
     return {
         baseURL,
-        defaultJSExtensions: false,
-        meta: {
-            [serverConfig.nodeMount.slice(1) + '/*']: {
-                deps: [serverConfig.nodeMount + '/' + nodeSupport.globals]
-            },
-            '*': {
-                format: 'cjs'
-            }
-        },
-        serialize: function () {
-            return JSON.stringify(this);
-        }
+        defaultJSExtensions: false
     }
 }
 
@@ -116,8 +105,8 @@ export function getConfiguration(overrides: ServerConfig = {}): ServerConfig {
 /* TODO: normalize topology (leading/trailing slashes) */
 export default function bundless(config: ServerConfig = {}): Server {
     const serverConfig: ServerConfig = getConfiguration(config);
-    let loaderConfig: Serializable;
-    const projectMap: Serializable = makeSerializable(getProjectMap(serverConfig, { nodeLibs: true }));
+    let loaderConfig: Object;
+    const projectMap: string = JSON.stringify(getProjectMap(serverConfig, { nodeLibs: true }));
 
     const handler = function (req: ServerRequest, res: ServerResponse) {
         let urlPath:string;
@@ -125,7 +114,7 @@ export default function bundless(config: ServerConfig = {}): Server {
         if(req.url === serverConfig.systemMount) {
             loaderConfig = loaderConfig || getLoaderConfig(this, serverConfig);
             res.writeHead(200, responseHeaders);
-            serveSystem(res, projectMap, loaderConfig);
+            serveBootstrap(serverConfig, projectMap, loaderConfig)(res);
         } else if(urlPath = testMountPoint(serverConfig.nodeMount, req.url)) {
             serveFile(res, nodeSupport.resolveNodeUrl(urlPath));
         } else {
