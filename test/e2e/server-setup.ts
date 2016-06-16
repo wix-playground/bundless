@@ -1,4 +1,4 @@
-import bundless from '../../src';
+import bundless from '../../src/sample-server';
 import {PackageBuilder} from "../../test-kit/project-driver";
 const host = '127.0.0.1';
 const port = 3000;

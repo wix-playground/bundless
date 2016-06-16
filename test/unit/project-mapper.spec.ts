@@ -36,7 +36,7 @@ describe('Project Mapper', function () {
             project
                 .addPackage('sol').addJspmMainFile('la/si/do.js');
 
-            projectMap = getProjectMap(topology);
+            projectMap = getProjectMap(topology, { nodeLibs: false });
         });
 
         it('as correct project map', function () {
@@ -62,7 +62,7 @@ describe('Project Mapper', function () {
                     .addPackage('webpack', '2.3.4')
                         .addPackage('socket.io', '4.5.6');
 
-            projectMap = getProjectMap(topology);
+            projectMap = getProjectMap(topology, { nodeLibs: false });
         });
 
         it('with "aggressive" approach', function () {
@@ -119,7 +119,7 @@ describe('Project Mapper', function () {
 
 
 
-            projectMap = getProjectMap(topology);
+            projectMap = getProjectMap(topology, { nodeLibs: false });
         });
 
         it('in various depths', function () {
