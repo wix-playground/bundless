@@ -10,7 +10,7 @@ function readModule(moduleId:string):string {
 
 export {rootDir as nodeRoot} from './node-support';
 
-export function generateBootstrapScript(options: BootstrapScriptOptions = {}, systemConfigOverrides:Object = {}):string {
+export function generateBootstrapScript(options: BootstrapScriptOptions = {}, systemConfigOverrides:Object = {}): string {
     const bootstrapOptions: BootstrapScriptOptions = _.merge({}, defBootstrapScriptOptions, options);
     const defaultSystemConfig = {
         defaultJSExtensions: false,

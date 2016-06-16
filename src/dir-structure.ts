@@ -1,16 +1,8 @@
 import fs = require('fs-extra');
 import path = require('path');
 import os = require('os');
+import {DirInfo, DirInfoDict} from "./types";
 
-export type DirInfoDict = { [name: string]: DirInfo };
-
-export interface DirInfo {
-    name: string;
-    path: string;
-    children?: DirInfoDict;
-    content?: Object;
-    parent: DirInfo;
-}
 
 const relevantFiles = ['package.json', 'bower.json', 'index.js'];
 
@@ -62,17 +54,3 @@ export function collectDirInfo(rootDir: string, parent: DirInfo = null): DirInfo
     }
 }
 
-export function traverseDirInfo<T>(root: DirInfo, visitor: (node: DirInfo) => void): void {
-    if(root) {
-        visitor.call(null, root);
-        if(root.children) {
-            for(let childName in root.children) {
-                traverseDirInfo(root.children[childName], visitor);
-            }
-        }
-    }
-}
-
-export function containsFile(parent: DirInfo, childName: string): boolean {
-    return parent.children && childName in parent.children;
-}

@@ -1,5 +1,22 @@
 import _ = require('lodash');
+import {collectDirInfo} from "./dir-structure";
 const spdyKeys = require('spdy-keys');
+
+export type DirInfoDict = { [name: string]: DirInfo };
+
+export interface DirInfo {
+    name: string;
+    path: string;
+    children?: DirInfoDict;
+    content?: Object;
+    parent: DirInfo;
+}
+
+
+export interface DirInfoCollector {
+    (rootDir: string): DirInfo;
+}
+
 
 export interface Topology {
     rootDir?: string;
@@ -23,6 +40,7 @@ export interface ServerConfig extends Topology {
 
 export interface ProjectMapperOptions {
     nodeLibs?: boolean;
+    collector?: DirInfoCollector;
 }
 
 
@@ -48,7 +66,8 @@ export const defServerConfig: ServerConfig = _.merge({}, defTopology, {
 });
 
 export const defProjectMapperOptions: ProjectMapperOptions = {
-    nodeLibs: true
+    nodeLibs: true,
+    collector: collectDirInfo
 };
 
 export const defBootstrapScriptOptions: BootstrapScriptOptions = _.merge({}, defTopology, {

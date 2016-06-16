@@ -1,13 +1,23 @@
-import {Topology, ProjectMapperOptions, defProjectMapperOptions} from "./types";
+import {Topology, ProjectMapperOptions, defProjectMapperOptions, DirInfo} from "./types";
 import fs = require('fs-extra');
 import path = require('path');
 import semver = require('semver');
 import * as nodeSupport from "./node-support";
-import {collectDirInfo, DirInfo, traverseDirInfo, containsFile} from './dir-structure';
 import _ = require('lodash');
 
 function getPackageVersion(pkg: DirInfo): string {
     return pkg.children['package.json']['content']['version'] || '0.0.0';
+}
+
+export function traverseDirInfo<T>(root: DirInfo, visitor: (node: DirInfo) => void): void {
+    if(root) {
+        visitor.call(null, root);
+        if(root.children) {
+            for(let childName in root.children) {
+                traverseDirInfo(root.children[childName], visitor);
+            }
+        }
+    }
 }
 
 function resolvePkgVersions(newPkg: DirInfo, existingPkg: DirInfo): DirInfo {
@@ -99,8 +109,8 @@ export interface ProjectMap {
 }
 
 
-function getNodeLibMap(nodeMount: string): ProjectMap {
-    const nodeLibStructure: DirInfo = collectDirInfo(path.join(nodeSupport.rootDir, 'node_modules'));
+function getNodeLibMap(nodeMount: string, options: ProjectMapperOptions): ProjectMap {
+    const nodeLibStructure: DirInfo = options.collector(path.join(nodeSupport.rootDir, 'node_modules'));
     const packages: PackageDict = buildPkgDict(nodeLibStructure, nodeMount, { lookupBrowserJs: true });
     _.forEach(nodeSupport.aliases, (aliasValue: nodeSupport.AliasValue, alias: string) => {
         if(typeof aliasValue === 'string') {
@@ -126,8 +136,8 @@ function mergeProjectMaps(map1: ProjectMap, map2: ProjectMap): ProjectMap {
 export function getProjectMap(topology: Topology, options: ProjectMapperOptions = {}): ProjectMap {
     const actualOptions: ProjectMapperOptions = _.merge({}, defProjectMapperOptions, options);
 
-    const srcDirStructure: DirInfo = collectDirInfo(path.join(topology.rootDir, topology.srcDir));
-    const libDirStructure: DirInfo = collectDirInfo(path.join(topology.rootDir, 'node_modules'));
+    const srcDirStructure: DirInfo = actualOptions.collector(path.join(topology.rootDir, topology.srcDir));
+    const libDirStructure: DirInfo = actualOptions.collector(path.join(topology.rootDir, 'node_modules'));
     const packages: PackageDict = buildPkgDict(libDirStructure, topology.libMount);
     const dirs: string[] = []
         .concat(collectIndexDirs(srcDirStructure, topology.srcMount))
@@ -139,7 +149,7 @@ export function getProjectMap(topology: Topology, options: ProjectMapperOptions 
     };
 
     if(actualOptions.nodeLibs) {
-        return mergeProjectMaps(projectMap, getNodeLibMap(topology.nodeMount));
+        return mergeProjectMaps(projectMap, getNodeLibMap(topology.nodeMount, actualOptions));
     } else {
         return projectMap;
     }
