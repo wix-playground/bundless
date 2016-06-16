@@ -29,17 +29,27 @@ export function generateBootstrapScript(options: BootstrapScriptOptions = {}, sy
     );
 
     const projectMap:ProjectMap = getProjectMap(<Topology>bootstrapOptions, bootstrapOptions.mapper);
+    const locator = readModule('./client/locator');
+    const loaderBootstrap = readModule('./client/loader-bootstrap');
 
-    return [
-        `var ${options.exportSymbol || '$bundless'} = function (System) { var projectMap = `,
-        JSON.stringify(projectMap),
-        ';\n\n',
-        'var locator = {};\n\n',
-        '(function (exports){',
-        readModule('./client/locator'),
-        '\n\n})(locator);\n\n',
-        `System.config(${systemConfig})\n\n`,
-        readModule('./client/loader-bootstrap'),
-        `\n\nreturn projectMap;\n};`
-    ].join('\n');
+    return `
+(function () {
+    var bootstrap = function (System) {
+        var projectMap = ${JSON.stringify(projectMap)};
+        var locator = {};
+        (function (exports) {
+            ${locator}
+        })(locator);
+        System.config(${systemConfig});
+        ${loaderBootstrap};
+        return projectMap;
+    };
+    if(typeof module === 'undefined') {
+        window["${bootstrapOptions.exportSymbol}"] = bootstrap;
+    } else {
+        module.exports = bootstrap;
+    }
+})()  
+    `;
+
 }
