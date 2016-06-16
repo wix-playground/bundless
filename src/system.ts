@@ -1,35 +1,14 @@
-import {Writable, Readable} from "stream";
 import fs = require('fs');
 import _ = require('lodash');
 import {Topology} from "./types";
 import * as nodeSupport from './node-support';
+import {ProjectMap} from "./project-mapper";
 
-function streamSystemModule(moduleId): Readable {
-    return fs.createReadStream(require.resolve(moduleId));
+function readModule(moduleId: string): string {
+    return fs.readFileSync(require.resolve(moduleId)).toString();
 }
 
-function seqStreams(inputStreams: Array<Readable | string>, outputStream: Writable): void {
-    const input: Readable | string = inputStreams[0];
-    if(input) {
-        if(typeof input === 'string') {
-            outputStream.write(input);
-            seqStreams(inputStreams.slice(1), outputStream);
-        } else {
-            input.on('end', function () {
-                seqStreams(inputStreams.slice(1), outputStream);
-            });
-            input.pipe(outputStream, { end: false });
-        }
-    } else {
-        outputStream.end();
-    }
-}
-
-export interface Pipe {
-    (res: Writable): void;
-}
-
-export function serveBootstrap(topology: Topology, projectMap: string | Readable, systemConfigOverrides?:Object, exportSymbol = '$bundless'): Pipe {
+export function generateBootstrapScript(topology: Topology, projectMap: ProjectMap, systemConfigOverrides?:Object, exportSymbol = '$bundless'): string {
     const defaultSystemConfig = {
         defaultJSExtensions: false,
         meta: {
@@ -45,20 +24,17 @@ export function serveBootstrap(topology: Topology, projectMap: string | Readable
     const systemConfig = JSON.stringify(
         _.merge({}, defaultSystemConfig, systemConfigOverrides)
     );
-    
-    return function pipe(res: Writable): void {
-        seqStreams([
+
+    return [
             `var ${exportSymbol} = function (System) { var projectMap = `,
-            projectMap,
+            JSON.stringify(projectMap),
             ';\n\n',
             'var locator = {};\n\n',
             '(function (exports){',
-                streamSystemModule('./client/locator'),
+            readModule('./client/locator'),
             '\n\n})(locator);\n\n',
             `System.config(${systemConfig})\n\n`,
-            streamSystemModule('./client/loader-bootstrap'),
+            readModule('./client/loader-bootstrap'),
             `\n\nreturn projectMap;\n};`
-        ], res);
-    }
-    
+        ].join('\n');
 }

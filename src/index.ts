@@ -8,13 +8,12 @@ import {ServerResponse} from "http";
 import * as http from "http";
 import stream = require('stream');
 import {Readable} from "stream";
-import {getProjectMap} from './project-mapper';
+import {getProjectMap, ProjectMap} from './project-mapper';
 import {ServerConfig} from "./types";
 import {log} from "./logger";
 import {resolveUrlToFile} from "./url-resolver";
-import {serveBootstrap, Pipe} from "./system";
+import {generateBootstrapScript} from "./system";
 import _ = require('lodash');
-import {Writable} from "stream";
 
 function getLoaderConfig(server: Server, serverConfig: ServerConfig): Object {
     const protocol = serverConfig.forceHttp1 ? 'http' : 'https';
@@ -100,11 +99,7 @@ export function getConfiguration(overrides: ServerConfig = {}): ServerConfig {
     return _.assign(defaultConfig, overrides);
 }
 
-export function writeBootstrap(output: Writable, config: ServerConfig = {}, systemConfigOverrides: Object, exportSymbol = "$bundless"): void {
-    const serverConfig: ServerConfig = getConfiguration(config);
-    const projectMap: string = JSON.stringify(getProjectMap(serverConfig, { nodeLibs: true }));
-    serveBootstrap(serverConfig, projectMap, systemConfigOverrides, exportSymbol)(output);
-}
+export {generateBootstrapScript} from './system';
 
 export {rootDir as nodeRoot} from './node-support';
 
@@ -112,15 +107,19 @@ export {rootDir as nodeRoot} from './node-support';
 /* TODO: normalize topology (leading/trailing slashes) */
 export default function bundless(config: ServerConfig = {}): Server {
     const serverConfig: ServerConfig = getConfiguration(config);
-    let loaderConfig: Object;
-    const projectMap: string = JSON.stringify(getProjectMap(serverConfig, { nodeLibs: true }));
+    let bootstrapScript: string;
+    const projectMap: ProjectMap = getProjectMap(serverConfig, { nodeLibs: true });
 
     const handler = function (req: ServerRequest, res: ServerResponse) {
         log('server >', req.method, req.url);
         if(req.url === serverConfig.systemMount) {
-            loaderConfig = loaderConfig || getLoaderConfig(this, serverConfig);
+            if(!bootstrapScript) {
+                 bootstrapScript = generateBootstrapScript(serverConfig, projectMap, getLoaderConfig(this, serverConfig))
+            }
+
+            // TODO: add bootstrap script caching
             res.writeHead(200, responseHeaders);
-            serveBootstrap(serverConfig, projectMap, loaderConfig)(res);
+            res.end(bootstrapScript);
         } else {
             const filePath: string = resolveUrlToFile(serverConfig, req.url);
             if(filePath) {
