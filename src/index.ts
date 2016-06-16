@@ -1,6 +1,5 @@
 import {Server} from "http";
 const spdy = require('spdy');
-const spdyKeys = require('spdy-keys');
 import fs = require('fs');
 import path = require('path');
 import {ServerRequest} from "http";
@@ -8,8 +7,7 @@ import {ServerResponse} from "http";
 import * as http from "http";
 import stream = require('stream');
 import {Readable} from "stream";
-import {getProjectMap, ProjectMap} from './project-mapper';
-import {ServerConfig} from "./types";
+import {ServerConfig, defServerConfig} from "./types";
 import {log} from "./logger";
 import {resolveUrlToFile} from "./url-resolver";
 import {generateBootstrapScript} from "./system";
@@ -85,36 +83,16 @@ function validateCache(req: ServerRequest, filePath: string, cb: (err: Error, ca
 }
 
 
-export function getConfiguration(overrides: ServerConfig = {}): ServerConfig {
-    const defaultConfig = {
-        rootDir: process.cwd(),
-        srcDir: 'dist',
-        srcMount: '/modules',
-        libMount: '/lib',
-        nodeMount: '/$node',
-        systemMount: '/$system',
-        ssl: spdyKeys,
-        forceHttp1: false
-    };
-    return _.assign(defaultConfig, overrides);
-}
-
-export {generateBootstrapScript} from './system';
-
-export {rootDir as nodeRoot} from './node-support';
-
-
 /* TODO: normalize topology (leading/trailing slashes) */
 export default function bundless(config: ServerConfig = {}): Server {
-    const serverConfig: ServerConfig = getConfiguration(config);
+    const serverConfig: ServerConfig = _.merge(defServerConfig, config);
     let bootstrapScript: string;
-    const projectMap: ProjectMap = getProjectMap(serverConfig, { nodeLibs: true });
 
     const handler = function (req: ServerRequest, res: ServerResponse) {
         log('server >', req.method, req.url);
         if(req.url === serverConfig.systemMount) {
             if(!bootstrapScript) {
-                 bootstrapScript = generateBootstrapScript(serverConfig, projectMap, getLoaderConfig(this, serverConfig))
+                 bootstrapScript = generateBootstrapScript(serverConfig, getLoaderConfig(this, serverConfig))
             }
 
             // TODO: add bootstrap script caching

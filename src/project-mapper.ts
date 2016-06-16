@@ -1,4 +1,4 @@
-import {Topology} from "./types";
+import {Topology, ProjectMapperOptions, defProjectMapperOptions} from "./types";
 import fs = require('fs-extra');
 import path = require('path');
 import semver = require('semver');
@@ -98,13 +98,6 @@ export interface ProjectMap {
     dirs: string[];
 }
 
-export interface ProjectMapperOptions {
-    nodeLibs?: boolean;
-}
-
-const defaultOptions: ProjectMapperOptions = {
-    nodeLibs: false
-};
 
 function getNodeLibMap(nodeMount: string): ProjectMap {
     const nodeLibStructure: DirInfo = collectDirInfo(path.join(nodeSupport.rootDir, 'node_modules'));
@@ -131,7 +124,7 @@ function mergeProjectMaps(map1: ProjectMap, map2: ProjectMap): ProjectMap {
 }
 
 export function getProjectMap(topology: Topology, options: ProjectMapperOptions = {}): ProjectMap {
-    const actualOptions: ProjectMapperOptions = _.assign({}, defaultOptions, options);
+    const actualOptions: ProjectMapperOptions = _.merge({}, defProjectMapperOptions, options);
 
     const srcDirStructure: DirInfo = collectDirInfo(path.join(topology.rootDir, topology.srcDir));
     const libDirStructure: DirInfo = collectDirInfo(path.join(topology.rootDir, 'node_modules'));
