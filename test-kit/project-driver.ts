@@ -71,7 +71,7 @@ export class PackageBuilder {
         fs.writeFileSync(fullPath, finalContent);
     }
 
-    private readFile(filePath: string): string {
+    readFile(filePath: string): string {
         const fullPath = this.getFullName(filePath);
         return fs.readFileSync(fullPath).toString();
     }

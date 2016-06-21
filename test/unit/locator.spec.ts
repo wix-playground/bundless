@@ -81,7 +81,7 @@ describe('locate', function () {
 
     describe('extractPackageNames()', function () {
         it('Extracts package names :)', function () {
-            expect(extractPackageNames(baseUrl, libMount, `${baseUrl}lib/pkgX/node_modules/pkgY/y.js`))
+            expect(extractPackageNames(baseUrl, libMount, `${baseUrl}${libMount}/pkgX/node_modules/pkgY/y.js`))
                 .to.eql(['pkgX', 'pkgY']);
         });
 

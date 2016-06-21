@@ -7,8 +7,15 @@ import {ProjectMap, getProjectMap} from "./project-mapper";
 function readModule(moduleId:string):string {
     return fs.readFileSync(require.resolve(moduleId)).toString();
 }
-
+function loadModule(moduleId:string){
+    return `(function () {
+        var exports = {};
+        ${readModule(moduleId)}
+        return exports;
+        })();`;
+}
 export {rootDir as nodeRoot} from './node-support';
+export const hooks = require('./client/system-hooks');
 
 export function generateBootstrapScript(options: BootstrapScriptOptions = {}, systemConfigOverrides:Object = {}): string {
     const bootstrapOptions: BootstrapScriptOptions = _.merge({}, defBootstrapScriptOptions, options);
@@ -35,11 +42,9 @@ export function generateBootstrapScript(options: BootstrapScriptOptions = {}, sy
     return `
 (function () {
     var bootstrap = function (System) {
+        var systemHooks = ${loadModule('./client/system-hooks')};
+        var locator = ${loadModule('./client/locator')};
         var projectMap = ${JSON.stringify(projectMap)};
-        var locator = {};
-        (function (exports) {
-            ${locator}
-        })(locator);
         System.config(${systemConfig});
         ${loaderBootstrap};
         return projectMap;
