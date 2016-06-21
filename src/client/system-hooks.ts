@@ -1,5 +1,5 @@
 
-export function normalize(origNormalize, baseURL, locator, projectMap, log, breakpointAt?){
+export function normalize(origNormalize, baseURL, locator, projectMap, log = (...args:string[]) => {}, breakpointAt?){
 	return function bundlessNormalize(name: string, parentName: string, parentAddress: string) {
 		const newName = locator.preProcess(projectMap, name, parentName, parentAddress);
 		log(`preProcess() ${name} -> ${newName}`);
