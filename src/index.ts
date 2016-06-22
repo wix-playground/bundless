@@ -1,10 +1,9 @@
 import fs = require('fs');
 import path = require('path');
 import _ = require('lodash');
-import {BootstrapScriptOptions, Topology} from "./types";
-import {defBootstrapScriptOptions} from "./defaults";
+import {defBootstrapScriptOptions, generateProjectInfo} from "./defaults";
 import * as nodeSupport from './node-support';
-import {ProjectMap, getProjectMap} from "./project-mapper";
+import {BootstrapScriptOptions, ProjectInfo, ProjectMapperOptions, ProjectMap, getProjectMap} from "./api";
 
 function readModule(moduleId:string):string {
     return fs.readFileSync(path.resolve(__dirname, moduleId)).toString();
@@ -17,6 +16,7 @@ function loadModule(moduleId:string){
         })();`;
 }
 export {rootDir as nodeRoot} from './node-support';
+
 export function generateBootstrapScript(options: BootstrapScriptOptions = {}, systemConfigOverrides:Object = {}): string {
     const bootstrapOptions: BootstrapScriptOptions = _.merge({}, defBootstrapScriptOptions, options);
     const defaultSystemConfig = {
@@ -35,7 +35,7 @@ export function generateBootstrapScript(options: BootstrapScriptOptions = {}, sy
         _.merge({}, defaultSystemConfig, systemConfigOverrides)
     );
 
-    const projectMap:ProjectMap = getProjectMap(<Topology>bootstrapOptions, bootstrapOptions.mapper);
+    const projectMap:ProjectMap = getProjectMap(generateProjectInfo(bootstrapOptions));
     const loaderBootstrap = readModule('./client/loader-bootstrap.js');
 
     return `

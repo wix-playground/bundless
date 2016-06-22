@@ -3,6 +3,7 @@ import {hookSystemJs} from '../../src/api';
 import {getProjectMap, ProjectMap} from "../../src/project-mapper";
 import {PackageBuilder,  default as projectDriver} from "../../test-kit/project-driver";
 import {Topology} from "../../src/types";
+import {generateProjectInfo} from "../../src/defaults";
 import tmp = require('tmp');
 import * as Promise from 'bluebird';
 
@@ -26,7 +27,10 @@ describe('system-hooks', function () {
 			srcMount: '/local',
 			libMount: '/__lib',
 			nodeMount: '/$node',
-			systemMount: '/$system'
+			systemMount: '/$system',
+			mapper: {
+				nodeLibs : false
+			}
 		};
 		project.addPackage('x')
 			.addMainFile('index.js', `
@@ -39,7 +43,7 @@ describe('system-hooks', function () {
 		project.addPackage('y').addFile('z.js', `
 				module.exports.bar = 'baz';
 			`);
-		const projectMap = getProjectMap(topology, { nodeLibs: false });
+		const projectMap = getProjectMap(generateProjectInfo(topology));
 		hookSystemJs(system,  '__base', projectMap);
 		system['fetch'] = function fetch(load) {
 			expect(load.address).to.contain(topology.libMount);
