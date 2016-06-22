@@ -3,13 +3,14 @@ import {PackageBuilder} from "../../test-kit/project-driver";
 import projectDriver from "../../test-kit/project-driver";
 import tmp = require('tmp');
 import {getProjectMap, ProjectMap} from "../../src/project-mapper";
-import {Topology} from "../../src/types";
+import {BootstrapScriptOptions} from "../../src/types";
+import {generateProjectInfo} from "../../src/defaults";
 
 describe('Project Mapper', function () {
     let tempDir;
     let project: PackageBuilder;
     let projectMap: ProjectMap;
-    let topology: Topology;
+    let topology: BootstrapScriptOptions;
 
     beforeEach(function () {
         tempDir = tmp.dirSync();
@@ -20,7 +21,10 @@ describe('Project Mapper', function () {
             srcMount: '/local',
             libMount: '/lib',
             nodeMount: '/$node',
-            systemMount: '/$system'
+            systemMount: '/$system',
+            mapper: {
+                nodeLibs: false
+            }
         }
     });
 
@@ -36,7 +40,7 @@ describe('Project Mapper', function () {
             project
                 .addPackage('sol').addJspmMainFile('la/si/do.js');
 
-            projectMap = getProjectMap(topology, { nodeLibs: false });
+            projectMap = getProjectMap(generateProjectInfo(topology));
         });
 
         it('as correct project map', function () {
@@ -62,7 +66,7 @@ describe('Project Mapper', function () {
                     .addPackage('webpack', '2.3.4')
                         .addPackage('socket.io', '4.5.6');
 
-            projectMap = getProjectMap(topology, { nodeLibs: false });
+            projectMap = getProjectMap(generateProjectInfo(topology));
         });
 
         it('with "aggressive" approach', function () {
@@ -81,7 +85,8 @@ describe('Project Mapper', function () {
         beforeEach(function () {
             project
                 .addMainFile('dist/main.js');
-            projectMap = getProjectMap(topology, { nodeLibs: true });
+            topology.mapper.nodeLibs = true;
+            projectMap = getProjectMap(generateProjectInfo(topology));
         });
 
         it('finds regular (ported) Node module', function () {
@@ -116,10 +121,7 @@ describe('Project Mapper', function () {
                     .addFile('a.index')
                     .addPackage('z')
                         .addFile('a/b/c/index.js');
-
-
-
-            projectMap = getProjectMap(topology, { nodeLibs: false });
+            projectMap = getProjectMap(generateProjectInfo(topology));
         });
 
         it('in various depths', function () {

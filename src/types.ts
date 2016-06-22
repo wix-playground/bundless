@@ -8,6 +8,12 @@ export interface DirInfo {
     parent: DirInfo;
 }
 
+export interface ProjectInfo extends Topology{
+    srcInfo:DirInfo;
+    libInfo:DirInfo;
+    nodeLibInfo?:DirInfo;
+}
+
 export interface DirInfoCollector {
     (rootDir: string): DirInfo;
 }

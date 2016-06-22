@@ -1,6 +1,5 @@
-import {Topology, ProjectMapperOptions, DirInfo} from "./types";
+import {Topology, ProjectInfo, DirInfo} from "./types";
 import {defProjectMapperOptions} from "./defaults";
-import fs = require('fs-extra');
 import path = require('path');
 import semver = require('semver');
 import * as nodeSupport from "./node-support";
@@ -110,8 +109,7 @@ export interface ProjectMap {
 }
 
 
-function getNodeLibMap(nodeMount: string, options: ProjectMapperOptions): ProjectMap {
-    const nodeLibStructure: DirInfo = options.collector(path.join(nodeSupport.rootDir, 'node_modules'));
+function getNodeLibMap(nodeMount: string, nodeLibStructure: DirInfo): ProjectMap {
     const packages: PackageDict = buildPkgDict(nodeLibStructure, nodeMount, { lookupBrowserJs: true });
     _.forEach(nodeSupport.aliases, (aliasValue: nodeSupport.AliasValue, alias: string) => {
         if(typeof aliasValue === 'string') {
@@ -134,23 +132,20 @@ function mergeProjectMaps(map1: ProjectMap, map2: ProjectMap): ProjectMap {
     };
 }
 
-export function getProjectMap(topology: Topology, options: ProjectMapperOptions = {}): ProjectMap {
-    const actualOptions: ProjectMapperOptions = _.merge({}, defProjectMapperOptions, options);
+export function getProjectMap(projInfo: ProjectInfo): ProjectMap {
 
-    const srcDirStructure: DirInfo = actualOptions.collector(path.join(topology.rootDir, topology.srcDir));
-    const libDirStructure: DirInfo = actualOptions.collector(path.join(topology.rootDir, 'node_modules'));
-    const packages: PackageDict = buildPkgDict(libDirStructure, topology.libMount);
+    const packages: PackageDict = buildPkgDict(projInfo.libInfo, projInfo.libMount);
     const dirs: string[] = []
-        .concat(collectIndexDirs(srcDirStructure, topology.srcMount))
-        .concat(collectIndexDirs(libDirStructure, topology.libMount));
+        .concat(collectIndexDirs(projInfo.srcInfo, projInfo.srcMount))
+        .concat(collectIndexDirs(projInfo.libInfo, projInfo.libMount));
 
     const projectMap: ProjectMap = {
         packages,
         dirs
     };
 
-    if(actualOptions.nodeLibs) {
-        return mergeProjectMaps(projectMap, getNodeLibMap(topology.nodeMount, actualOptions));
+    if(projInfo.nodeLibInfo) {
+        return mergeProjectMaps(projectMap, getNodeLibMap(projInfo.nodeMount, projInfo.nodeLibInfo));
     } else {
         return projectMap;
     }
