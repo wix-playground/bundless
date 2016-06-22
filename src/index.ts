@@ -16,7 +16,8 @@ function loadModule(moduleId:string){
         })();`;
 }
 export {rootDir as nodeRoot} from './node-support';
-export const hooks = require('./client/system-hooks');
+import * as _hooks from './client/system-hooks';
+export const hooks = _hooks;
 
 export function generateBootstrapScript(options: BootstrapScriptOptions = {}, systemConfigOverrides:Object = {}): string {
     const bootstrapOptions: BootstrapScriptOptions = _.merge({}, defBootstrapScriptOptions, options);
