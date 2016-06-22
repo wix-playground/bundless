@@ -1,7 +1,8 @@
 import fs = require('fs');
 import path = require('path');
 import _ = require('lodash');
-import {BootstrapScriptOptions, defBootstrapScriptOptions, Topology} from "./types";
+import {BootstrapScriptOptions, Topology} from "./types";
+import {defBootstrapScriptOptions} from "./defaults";
 import * as nodeSupport from './node-support';
 import {ProjectMap, getProjectMap} from "./project-mapper";
 
@@ -16,9 +17,6 @@ function loadModule(moduleId:string){
         })();`;
 }
 export {rootDir as nodeRoot} from './node-support';
-import * as _hooks from './client/system-hooks';
-export const hooks = _hooks;
-
 export function generateBootstrapScript(options: BootstrapScriptOptions = {}, systemConfigOverrides:Object = {}): string {
     const bootstrapOptions: BootstrapScriptOptions = _.merge({}, defBootstrapScriptOptions, options);
     const defaultSystemConfig = {
@@ -55,7 +53,7 @@ export function generateBootstrapScript(options: BootstrapScriptOptions = {}, sy
     } else {
         module.exports = bootstrap;
     }
-})()  
+})()
     `;
 
 }

@@ -1,6 +1,5 @@
 import {expect} from 'chai';
-import {hooks} from '../../src/index';
-import * as locator from '../../src/client/locator';
+import {hookSystemJs} from '../../src/api';
 import {getProjectMap, ProjectMap} from "../../src/project-mapper";
 import {PackageBuilder,  default as projectDriver} from "../../test-kit/project-driver";
 import {Topology} from "../../src/types";
@@ -41,7 +40,7 @@ describe('system-hooks', function () {
 				module.exports.bar = 'baz';
 			`);
 		const projectMap = getProjectMap(topology, { nodeLibs: false });
-		system['normalize'] = hooks.normalize(system['normalize'].bind(system), '__base', locator, projectMap);
+		hookSystemJs(system,  '__base', projectMap);
 		system['fetch'] = function fetch(load) {
 			expect(load.address).to.contain(topology.libMount);
 			let path = load.address.substr(load.address.indexOf(topology.libMount)).replace(topology.libMount, 'node_modules');
