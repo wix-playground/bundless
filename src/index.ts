@@ -1,11 +1,12 @@
 import fs = require('fs');
+import path = require('path');
 import _ = require('lodash');
 import {BootstrapScriptOptions, defBootstrapScriptOptions, Topology} from "./types";
 import * as nodeSupport from './node-support';
 import {ProjectMap, getProjectMap} from "./project-mapper";
 
 function readModule(moduleId:string):string {
-    return fs.readFileSync(require.resolve(moduleId)).toString();
+    return fs.readFileSync(path.resolve(__dirname, moduleId)).toString();
 }
 function loadModule(moduleId:string){
     return `(function () {
@@ -36,14 +37,13 @@ export function generateBootstrapScript(options: BootstrapScriptOptions = {}, sy
     );
 
     const projectMap:ProjectMap = getProjectMap(<Topology>bootstrapOptions, bootstrapOptions.mapper);
-    const locator = readModule('./client/locator');
-    const loaderBootstrap = readModule('./client/loader-bootstrap');
+    const loaderBootstrap = readModule('./client/loader-bootstrap.js');
 
     return `
 (function () {
     var bootstrap = function (System) {
-        var systemHooks = ${loadModule('./client/system-hooks')};
-        var locator = ${loadModule('./client/locator')};
+        var systemHooks = ${loadModule('./client/system-hooks.js')};
+        var locator = ${loadModule('./client/locator.js')};
         var projectMap = ${JSON.stringify(projectMap)};
         System.config(${systemConfig});
         ${loaderBootstrap};
