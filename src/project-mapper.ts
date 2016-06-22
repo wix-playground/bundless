@@ -1,4 +1,5 @@
-import {Topology, ProjectMapperOptions, defProjectMapperOptions, DirInfo} from "./types";
+import {Topology, ProjectMapperOptions, DirInfo} from "./types";
+import {defProjectMapperOptions} from "./defaults";
 import fs = require('fs-extra');
 import path = require('path');
 import semver = require('semver');
