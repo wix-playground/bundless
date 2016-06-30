@@ -89,11 +89,19 @@ function buildPkgDict(dirInfo: DirInfo, libMount: string, options: PackageDictOp
     return finalDict;
 }
 
+function joinUrls(url1: string, url2: string): string {
+    if(_.last(url1) === '/' && _.first(url2) === '/') {
+        return url1 + url2.slice(1);
+    } else {
+        return url1 + url2;
+    }
+}
+
 function collectIndexDirs(root: DirInfo, prefix: string): string[] {
     const list: string[] = [];
     traverseDirInfo(root, (node: DirInfo) => {
         if(node.name === 'index.js' && !('package.json' in node.parent.children)) {
-            const url = prefix + node.parent.path.slice(root.path.length) + '.js';
+            const url = joinUrls(prefix, node.parent.path.slice(root.path.length) + '.js');
             list.push(url);
         }
     });
