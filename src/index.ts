@@ -17,6 +17,8 @@ function loadModule(moduleId:string){
 }
 export {rootDir as nodeRoot} from './node-support';
 
+export {defBootstrapScriptOptions as defaultOptions};
+
 export function generateBootstrapScript(options: BootstrapScriptOptions = {}, systemConfigOverrides:Object = {}): string {
     const bootstrapOptions: BootstrapScriptOptions = _.merge({}, defBootstrapScriptOptions, options);
     const defaultSystemConfig = {
