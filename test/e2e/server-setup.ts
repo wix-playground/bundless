@@ -8,8 +8,8 @@ export function setupBundlessServer(project: PackageBuilder, cb: Function) {
     const bundlessServer = bundless({
         rootDir: project.getPath(),
         srcDir: 'dist',
-        srcMount: '/',
-        libMount: '/node_modules',
+        srcMount: '/modules',
+        libMount: '/lib',
         nodeMount: '/$node',
         systemMount: '/$system'
     });

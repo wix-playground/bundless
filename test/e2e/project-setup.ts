@@ -8,11 +8,11 @@ export function setupProject(): PackageBuilder {
     const tempDir: SynchrounousResult = tmp.dirSync();
     const project = projectDriver(tempDir.name)
         .addMainFile('dist/main.js',`
-        var a = require("./a");
+        // var a = require("./a");
         var x = require("pkgX");  
         var x2 = require("pkgX/sub");  
      `)
-        .addFile('dist/a.js', supportedLibs.map(libName => `var ${libName} = require("${libName}");`).join('\n'));
+        // .addFile('dist/a.js', supportedLibs.map(libName => `var ${libName} = require("${libName}");`).join('\n'));
 
     const pkgX = project.addPackage('pkgX')
         .addMainFile('x.js', `

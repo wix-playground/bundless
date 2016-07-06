@@ -14,7 +14,7 @@ setupBundlessServer(project, () => {
     const server = new Server({
         port: 9876,
         configFile: process.cwd() + '/karma.conf.js',
-        singleRun: true
+        singleRun: false
     }, exitCode => shutDown(exitCode));
     server.start();
 });

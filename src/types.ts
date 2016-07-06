@@ -47,3 +47,7 @@ export interface BootstrapScriptOptions extends Topology {
     exportSymbol?: string;
     mapper?: ProjectMapperOptions;
 }
+
+export interface NewProjectMap {
+    [path: string]: string;
+}

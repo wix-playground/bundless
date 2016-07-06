@@ -19,7 +19,7 @@ describe('e2e test', function () {
         return loadScript('https://127.0.0.1:3000/$system')
              .then(() => {
                  window['$bundless'](System);
-                 return System.import('main.js');
+                 return System.import('modules/main.js');
              });
     });
 });

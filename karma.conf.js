@@ -15,7 +15,7 @@ module.exports = function(config) {
 
         // list of files / patterns to load in the browser
         files: [
-            'node_modules/systemjs/dist/system.js',
+            'node_modules/systemjs/dist/system.src.js',
             'dist/test/e2e/e2e.spec.js'
         ],
 
