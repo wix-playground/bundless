@@ -20,7 +20,13 @@ export function setupProject(): PackageBuilder {
             var data = require("./data.json");
             var bar = require("./foo/bar");
             var qux = require("./foo/bar/baz/qux");
+            var sub = require("./bus");
          `)
+        .addToPackageJson({
+            browser: {
+                './bus': './sub'
+            }
+        })
         .addFile('sub.js','')
         .addFile('data.json', '{ "wtf": "data" }')
         .addFile('foo/bar/index.js')

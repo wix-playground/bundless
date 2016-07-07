@@ -1,5 +1,6 @@
 import fs = require('fs-extra');
 import path = require('path');
+import _ = require('lodash');
 
 export class PackageBuilder {
     constructor(private name: string, private rootDir: string, version?:string) {
@@ -54,6 +55,13 @@ export class PackageBuilder {
     addPackage(name: string, version?: string): PackageBuilder {
         const newPath: string = path.resolve(this.rootDir, 'node_modules', name);
         return new PackageBuilder(name, newPath, version);
+    }
+
+    addToPackageJson(obj: Object): PackageBuilder {
+        const packageJson: Object = this.readJSON('package.json');
+        _.merge(packageJson, obj);
+        this.writeFile('package.json', packageJson);
+        return this;
     }
 
     getPath(): string {
