@@ -153,5 +153,30 @@ describe('Project Mapper', function () {
         });
     });
 
+    describe('in topology where srcDir contains the whole project', function () {
+        beforeEach(function () {
+            topology.srcDir = '';
+
+            project
+                .addFile('dist/foo/bar/index.js')
+                .addPackage('x').addFile('z/index.js')
+                .addPackage('poo').addFile('index.js', '// this should be invisible');
+            project
+                .addPackage('y')
+                .addFile('a.index')
+                .addPackage('z')
+                .addFile('a/b/c/index.js');
+            projectMap = getProjectMap(generateProjectInfo(topology));
+        });
+
+        it('index files are collected correctly', function () {
+            expect(projectMap.dirs).to.eql([
+                '/local/dist/foo/bar.js',
+                '/lib/x/z.js',
+                '/lib/y/node_modules/z/a/b/c.js'
+            ]);
+        });
+    });
+
 
 });
