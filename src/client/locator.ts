@@ -8,7 +8,7 @@ function getExt(fileName: string): string {
 
 function normalizeTail(name: string): string {
     const ext = getExt(name);
-    if(ext === '.js' || ext === '.json') {
+    if(ext === '.js' || ext === '.json' || ext === '.') {
         return name;
     } else {
         return name + '.js';
