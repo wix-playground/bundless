@@ -11,7 +11,7 @@ function normalizeTail(name: string, ignorePattern:RegExp): string {
         return name;
     }
     const ext = getExt(name);
-    if(ext === '.js' || ext === '.json') {
+    if(ext === '.js' || ext === '.json' || ext === '.') {
         return name;
     } else {
         return name + '.js';

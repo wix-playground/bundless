@@ -47,6 +47,7 @@ describe('locate', function () {
             expect(preProcess('../elliptic')).to.equal('../elliptic.js');
             expect(preProcess('../../elliptic')).to.equal('../../elliptic.js');
             expect(preProcess('..')).to.equal('..');
+            expect(preProcess('../.')).to.equal('../.');
         });
 
 
