@@ -10,9 +10,6 @@ import * as Promise from 'bluebird';
 const SystemJS = (typeof System === 'undefined') ? require('systemjs/dist/system.src') : System;
 const SysConstructor = <any>SystemJS.constructor;
 
-function makeProjectStub() {
-
-};
 describe('system-hooks', function () {
 	// https://github.com/systemjs/systemjs/issues/366#issuecomment-180057616
 	let system, project, topology;
