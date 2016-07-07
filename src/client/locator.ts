@@ -1,4 +1,4 @@
-import {ProjectMap} from "./../project-mapper";
+import {ProjectMap, preloadedPackageRec} from "./../project-mapper";
 
 function getExt(fileName: string): string {
     const slashIndex = fileName.lastIndexOf('/');
@@ -23,7 +23,9 @@ function resolveAsPackage(projectMap: ProjectMap, filePath: string, noJSExtensio
     const pkgName = segments[0];
     if(pkgName in projectMap.packages) {
         const { p: moduleSource, m: modulePath} = projectMap.packages[pkgName];
-        if(modulePath) {
+        if (moduleSource === preloadedPackageRec.p){
+            return pkgName;
+        } else if(modulePath) {
             const tail = segments.length === 1
                 ? modulePath
                 : segments.slice(1).join('/');
@@ -84,6 +86,10 @@ export function joinUrl(baseUrl: string, ...paths: string[]): string {
 }
 
 export function preProcess(projectMap: ProjectMap, name: string, parentName?: string, parentAddress?: string, noJSExtension?:RegExp): string {
+    const packageRec = projectMap.packages[name];
+    if (packageRec && packageRec.p === preloadedPackageRec.p){
+        return name;
+    }
     const segments = name.split('/');
     const packageName = segments[0];
     if(packageName === '.' || packageName === '..') {
@@ -104,6 +110,10 @@ export function preProcess(projectMap: ProjectMap, name: string, parentName?: st
 }
 
 export function postProcess(projectMap: ProjectMap, baseUrl: string, resolvedName: string, noJSExtension?:RegExp): string {
+	const packageRec = projectMap.packages[resolvedName];
+    if (packageRec && packageRec.p === preloadedPackageRec.p){
+        return resolvedName;
+    }
     const filePath: string = resolvedName.slice(baseUrl.length);
     if(isDefaultIndexDir(projectMap, '/' + filePath)) {
         return joinUrl(baseUrl, stripJsExt(filePath), 'index.js');
