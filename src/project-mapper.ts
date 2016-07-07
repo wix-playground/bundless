@@ -97,7 +97,7 @@ function buildPkgDict(dirInfo: DirInfo, libMount: string, options: PackageDictOp
         const pkg: DirInfo = pkgDict[pkgName];
         const pkgPath = libMount + pkg.path.slice(dirInfo.path.length);
         const mainFilePath = resolveMainPkgFile(pkg);
-        finalDict[pkgName] = [pkgPath, mainFilePath];
+        finalDict[pkgName] = { p: pkgPath, m: mainFilePath };
     }
     
     return finalDict;
@@ -122,8 +122,14 @@ function collectIndexDirs(root: DirInfo, prefix: string): string[] {
     return list;
 }
 
-export type PackageTuple = [string, string];
-export type PackageDict = { [pkgName: string]: PackageTuple };
+// These properties have short names because we're trying to make the project map as small as possible
+
+export type PackageRec = {
+    p: string;  // package path
+    m: string;  // main file local path
+};
+
+export type PackageDict = { [pkgName: string]: PackageRec };
 
 export interface ProjectMap {
     packages: PackageDict;
@@ -137,7 +143,7 @@ function getNodeLibMap(nodeMount: string, nodeLibStructure: DirInfo): ProjectMap
         if(typeof aliasValue === 'string') {
             packages[alias] = packages[aliasValue];
         } else if(aliasValue === null) {
-            packages[alias] = [nodeMount, nodeSupport.stubPath];
+            packages[alias] = { p: nodeMount, m: nodeSupport.stubPath };
         } else {
             packages[alias] = aliasValue(packages);
         }
