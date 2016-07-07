@@ -81,7 +81,9 @@ export function joinUrl(baseUrl: string, ...paths: string[]): string {
 }
 
 export function preProcess(projectMap: ProjectMap, name: string, parentName?: string, parentAddress?: string): string {
-    const segments = name.split('/');
+    const segments = name
+        .split('/')
+        .filter(segment => segment !== '.');
     const packageName = segments[0];
     if(packageName === '.' || packageName === '..') {
         if(segments.length === 1) {
