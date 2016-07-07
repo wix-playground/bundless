@@ -6,7 +6,10 @@ function getExt(fileName: string): string {
     return (dotIndex > slashIndex) ? fileName.slice(dotIndex) : '';
 }
 
-function normalizeTail(name: string): string {
+function normalizeTail(name: string, ignorePattern:RegExp): string {
+    if (ignorePattern && name.match(ignorePattern)){
+        return name;
+    }
     const ext = getExt(name);
     if(ext === '.js' || ext === '.json') {
         return name;
@@ -15,7 +18,7 @@ function normalizeTail(name: string): string {
     }
 }
 
-function resolveAsPackage(projectMap: ProjectMap, filePath: string): string {
+function resolveAsPackage(projectMap: ProjectMap, filePath: string, noJSExtension?:RegExp): string {
     const segments = filePath.split('/').filter(ch => !!ch);
     const pkgName = segments[0];
     if(pkgName in projectMap.packages) {
@@ -24,12 +27,12 @@ function resolveAsPackage(projectMap: ProjectMap, filePath: string): string {
             const tail = segments.length === 1
                 ? modulePath
                 : segments.slice(1).join('/');
-            return moduleSource + '/' + normalizeTail(tail);
+            return moduleSource + '/' + normalizeTail(tail, noJSExtension);
         } else {
             return moduleSource;
         }
     } else {
-        return normalizeTail(filePath);
+        return normalizeTail(filePath, noJSExtension);
     }
 }
 
@@ -80,7 +83,7 @@ export function joinUrl(baseUrl: string, ...paths: string[]): string {
     return result;
 }
 
-export function preProcess(projectMap: ProjectMap, name: string, parentName?: string, parentAddress?: string): string {
+export function preProcess(projectMap: ProjectMap, name: string, parentName?: string, parentAddress?: string, noJSExtension?:RegExp): string {
     const segments = name.split('/');
     const packageName = segments[0];
     if(packageName === '.' || packageName === '..') {
@@ -88,19 +91,19 @@ export function preProcess(projectMap: ProjectMap, name: string, parentName?: st
             return name;
         } else {
             const tail = segments.slice(1).join('/');
-            return segments[0] + '/' + normalizeTail(tail);
+            return segments[0] + '/' + normalizeTail(tail, noJSExtension);
         }
     } else {
-        const pkgMainFilePath = resolveAsPackage(projectMap, name);
+        const pkgMainFilePath = resolveAsPackage(projectMap, name, noJSExtension);
         if(pkgMainFilePath) {
             return pkgMainFilePath;
         } else {
-            return normalizeTail(name);
+            return normalizeTail(name, noJSExtension);
         }
     }
 }
 
-export function postProcess(projectMap: ProjectMap, baseUrl: string, resolvedName: string): string {
+export function postProcess(projectMap: ProjectMap, baseUrl: string, resolvedName: string, noJSExtension?:RegExp): string {
     const filePath: string = resolvedName.slice(baseUrl.length);
     if(isDefaultIndexDir(projectMap, '/' + filePath)) {
         return joinUrl(baseUrl, stripJsExt(filePath), 'index.js');
@@ -108,12 +111,12 @@ export function postProcess(projectMap: ProjectMap, baseUrl: string, resolvedNam
         if(getExt(resolvedName) === '') {
             const pkgs = extractPackageNames(baseUrl, 'lib', resolvedName);
             if (pkgs.length > 0) {
-                const pkgMainFilePath = resolveAsPackage(projectMap, pkgs[pkgs.length - 1]);
+                const pkgMainFilePath = resolveAsPackage(projectMap, pkgs[pkgs.length - 1], noJSExtension);
                 if (pkgMainFilePath) {
                     return joinUrl(baseUrl, pkgMainFilePath);
                 }
             }
         }
-        return normalizeTail(resolvedName);
+        return normalizeTail(resolvedName, noJSExtension);
     }
 }
