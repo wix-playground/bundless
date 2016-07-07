@@ -8,7 +8,7 @@ function getExt(fileName: string): string {
 
 function normalizeTail(name: string): string {
     const ext = getExt(name);
-    if(ext === '.js' || ext === '.json') {
+    if(ext === '.js' || ext === '.json' || ext === '.') {
         return name;
     } else {
         return name + '.js';
@@ -81,9 +81,7 @@ export function joinUrl(baseUrl: string, ...paths: string[]): string {
 }
 
 export function preProcess(projectMap: ProjectMap, name: string, parentName?: string, parentAddress?: string): string {
-    const segments = name
-        .split('/')
-        .filter(segment => segment !== '.');
+    const segments = name.split('/');
     const packageName = segments[0];
     if(packageName === '.' || packageName === '..') {
         if(segments.length === 1) {
