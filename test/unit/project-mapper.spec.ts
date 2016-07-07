@@ -79,6 +79,26 @@ describe('Project Mapper', function () {
         });
     });
 
+    describe('among multiple instances of the same version', function () {
+        beforeEach(function () {
+            project
+                .addPackage('webpack', '1.2.3');
+
+            project
+                .addPackage('foo')
+                    .addPackage('webpack', '1.2.3');
+            
+            projectMap = getProjectMap(generateProjectInfo(topology));
+        });
+
+        it('preferes package closer to the top level', function () {
+            expect(projectMap.packages).to.eql({
+                'foo': ['/lib/foo', 'index.js'],
+                'webpack': ['/lib/webpack', 'index.js']
+            });
+        });
+    });
+
     describe('describes Node.js packages', function () {
         const npm2nodeLibsDir = '/$node/node-libs-browser/node_modules';
         const npm3nodeLibsDir = '/$node';
