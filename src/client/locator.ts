@@ -22,7 +22,7 @@ function resolveAsPackage(projectMap: ProjectMap, filePath: string, noJSExtensio
     const segments = filePath.split('/').filter(ch => !!ch);
     const pkgName = segments[0];
     if(pkgName in projectMap.packages) {
-        const [moduleSource, modulePath] = projectMap.packages[pkgName];
+        const { p: moduleSource, m: modulePath} = projectMap.packages[pkgName];
         if(modulePath) {
             const tail = segments.length === 1
                 ? modulePath

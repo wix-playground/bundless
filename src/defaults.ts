@@ -7,6 +7,11 @@ import * as nodeSupport from './node-support';
 
 export function generateProjectInfo(bootstrapOptions:BootstrapScriptOptions):ProjectInfo {
 	const actualOptions:ProjectMapperOptions = _.merge({}, defProjectMapperOptions, bootstrapOptions.mapper);
+	const srcDir = path.resolve(bootstrapOptions.rootDir, bootstrapOptions.srcDir);
+	const libDir = path.resolve(bootstrapOptions.rootDir, 'node_modules');
+	const excludeFromSrc: string[] = (path.resolve(bootstrapOptions.rootDir) === srcDir)
+		? [libDir]
+		: [];
 	const projectInfo:ProjectInfo = {
 		rootDir: bootstrapOptions.rootDir,
 		srcDir: bootstrapOptions.srcDir,
@@ -14,12 +19,12 @@ export function generateProjectInfo(bootstrapOptions:BootstrapScriptOptions):Pro
 		libMount: bootstrapOptions.libMount,
 		nodeMount: bootstrapOptions.nodeMount,
 		systemMount: bootstrapOptions.systemMount,
-		srcInfo: actualOptions.collector(path.join(bootstrapOptions.rootDir, bootstrapOptions.srcDir)),
-		libInfo: actualOptions.collector(path.join(bootstrapOptions.rootDir, 'node_modules')),
+		srcInfo: actualOptions.collector(srcDir, excludeFromSrc),
+		libInfo: actualOptions.collector(libDir),
 		nodeLibInfo: actualOptions.nodeLibs? actualOptions.collector(path.join(nodeSupport.rootDir, 'node_modules')) : undefined
 	};
 	return projectInfo;
-};
+}
 
 export const defTopology: Topology = {
 	rootDir: process.cwd(),

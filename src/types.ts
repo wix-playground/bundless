@@ -15,7 +15,7 @@ export interface ProjectInfo extends Topology{
 }
 
 export interface DirInfoCollector {
-    (rootDir: string): DirInfo;
+    (rootDir: string, exclude?: string[]): DirInfo;
 }
 
 export interface Topology {
