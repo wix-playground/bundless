@@ -1,4 +1,4 @@
-import {PackageTuple, PackageDict} from "./project-mapper";
+import {PackageRec, PackageDict} from "./project-mapper";
 import fs = require('fs');
 import path = require('path');
 
@@ -40,7 +40,7 @@ export const supportedLibs = [
     "zlib"
 ];
 
-export type AliasValue = string | ((dict: PackageDict) => PackageTuple);
+export type AliasValue = string | ((dict: PackageDict) => PackageRec);
 export type AliasDict = { [alias: string]: AliasValue }
 export const aliases: AliasDict = {
     "console": "console-browserify",
@@ -73,7 +73,7 @@ export const aliases: AliasDict = {
     "tls": null,
 
     // Dynamic aliases
-    "_stream_transform" : dict => [dict['readable-stream'][0], 'transform.js']
+    "_stream_transform" : dict => ({ p: dict['readable-stream'].p, m: 'transform.js' })
 };
 
 export const stubPath = 'node-support/stub.js';
