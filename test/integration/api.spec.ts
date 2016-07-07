@@ -10,18 +10,18 @@ import * as Promise from 'bluebird';
 const SystemJS = (typeof System === 'undefined') ? require('systemjs/dist/system.src') : System;
 const SysConstructor = <any>SystemJS.constructor;
 
+function makeProjectStub() {
+
+};
 describe('system-hooks', function () {
 	// https://github.com/systemjs/systemjs/issues/366#issuecomment-180057616
-	let system;
-	const Obj1 = {foo:'bar'};
+	let system, project, topology;
 
 	beforeEach(() => {
 		system = new SysConstructor();
-	});
-	it('normalize works with simple map', () => {
 		const tempDir = tmp.dirSync();
-		const project = projectDriver(tempDir.name);
-		const topology = {
+		project = projectDriver(tempDir.name);
+		topology = {
 			rootDir: project.getPath(),
 			srcDir: 'dist',
 			srcMount: '/local',
@@ -29,9 +29,16 @@ describe('system-hooks', function () {
 			nodeMount: '/$node',
 			systemMount: '/$system',
 			mapper: {
-				nodeLibs : false
+				nodeLibs: false
 			}
 		};
+		system['fetch'] = function fetch(load) {
+			expect(load.address).to.contain(topology.libMount);
+			let path = load.address.substr(load.address.indexOf(topology.libMount)).replace(topology.libMount, 'node_modules');
+			return Promise.resolve(project.readFile(path));
+		};
+	});
+	it('normalize works with simple map', () => {
 		project.addPackage('x')
 			.addMainFile('index.js', `
 					module.exports = require('./z');
@@ -43,13 +50,24 @@ describe('system-hooks', function () {
 		project.addPackage('y').addFile('z.js', `
 				module.exports.bar = 'baz';
 			`);
-		const projectMap = getProjectMap(generateProjectInfo(topology));
-		hookSystemJs(system,  '__base', projectMap);
-		system['fetch'] = function fetch(load) {
-			expect(load.address).to.contain(topology.libMount);
-			let path = load.address.substr(load.address.indexOf(topology.libMount)).replace(topology.libMount, 'node_modules');
-			return Promise.resolve(project.readFile(path));
-		};
+		hookSystemJs(system,  '__base', getProjectMap(generateProjectInfo(topology)));
+		return system.import('x').then((imported) => {
+			expect(imported.foo).to.eql('baz');
+		});
+	});
+	it('normalize respects noJSExtension', () => {
+		project.addPackage('x')
+			.addMainFile('index.js', `
+					module.exports = require('./FOO');
+				`)
+			.addFile('FOO', `
+					var yz = require('y/z');
+					module.exports.foo = yz.bar;
+				`);
+		project.addPackage('y').addFile('z.js', `
+				module.exports.bar = 'baz';
+			`);
+		hookSystemJs(system,  '__base', getProjectMap(generateProjectInfo(topology)), undefined, undefined, /FOO/);
 		return system.import('x').then((imported) => {
 			expect(imported.foo).to.eql('baz');
 		});

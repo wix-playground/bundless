@@ -128,7 +128,6 @@ export type PackageRec = {
     p: string;  // package path
     m: string;  // main file local path
 };
-export const preloadedPackageRec : PackageRec = {p:'pre-loaded', m:null};
 
 export type PackageDict = { [pkgName: string]: PackageRec };
 
