@@ -20,10 +20,24 @@ export function traverseDirInfo<T>(root: DirInfo, visitor: (node: DirInfo) => vo
     }
 }
 
+function calcDepth(dirInfo: DirInfo, currentDepth: number = 0): number {
+    if(dirInfo.parent) {
+        return calcDepth(dirInfo.parent, currentDepth+1);
+    } else {
+        return currentDepth;
+    }
+}
+
 function resolvePkgVersions(newPkg: DirInfo, existingPkg: DirInfo): DirInfo {
     const newVersion = getPackageVersion(newPkg);
     const existingVersion = getPackageVersion(existingPkg);
-    if(semver.gt(newVersion, existingVersion)) {
+    if(semver.eq(newVersion, existingVersion)) {
+        if(calcDepth(existingPkg) > calcDepth(newPkg)) {
+            return newPkg;
+        } else {
+            return existingPkg;
+        }
+    } else if(semver.gt(newVersion, existingVersion)) {
         return newPkg;
     } else {
         return existingPkg;
