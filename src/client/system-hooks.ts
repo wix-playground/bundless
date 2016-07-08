@@ -1,11 +1,11 @@
 
-export function normalize(origNormalize, baseURL:string, locator, projectMap:Object, log = (...args:string[]) => {}, breakpointAt?:string){
+export function normalize(origNormalize, baseURL:string, locator, projectMap:Object, log = (...args:string[]) => {}, breakpointAt?:string, noJSExtension?:RegExp){
 	return function bundlessNormalize(name: string, parentName: string, parentAddress: string) {
-		const newName = locator.preProcess(projectMap, name, parentName, parentAddress);
+		const newName = locator.preProcess(projectMap, name, parentName, parentAddress, noJSExtension);
 		log(`preProcess() ${name} -> ${newName}`);
 		return origNormalize(newName, parentName, parentAddress)
 			.then(resolvedName => {
-				const result = locator.postProcess(projectMap, baseURL, resolvedName);
+				const result = locator.postProcess(projectMap, baseURL, resolvedName, noJSExtension);
 				log(`postProcess() ${name}: ${resolvedName} -> ${result}`);
 				if(result === breakpointAt) {
 					name, parentName, parentAddress, newName, resolvedName, result;

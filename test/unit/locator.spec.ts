@@ -14,9 +14,9 @@ describe('locate', function () {
     before(function () {
         projectMap = {
             packages: {
-                pkgX: ['/lib/pkgX', 'x.js'],
-                pkgY: ['/lib/pkgX/node_modules/pkgY', 'y.js'],
-                zlib: ['/$node/browserify-zlib', 'src/index.js']
+                pkgX: { p: '/lib/pkgX', m: 'x.js' },
+                pkgY: { p: '/lib/pkgX/node_modules/pkgY', m: 'y.js'},
+                zlib: { p: '/$node/browserify-zlib', m: 'src/index.js' }
             },
             dirs: [
                 '/a/b.js',
@@ -47,6 +47,7 @@ describe('locate', function () {
             expect(preProcess('../elliptic')).to.equal('../elliptic.js');
             expect(preProcess('../../elliptic')).to.equal('../../elliptic.js');
             expect(preProcess('..')).to.equal('..');
+            expect(preProcess('../.')).to.equal('../.');
         });
 
 

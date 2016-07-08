@@ -45,9 +45,9 @@ describe('Project Mapper', function () {
 
         it('as correct project map', function () {
             expect(projectMap.packages).to.eql({
-                'foo': ['/lib/foo', 'bar/far/f.js'],
-                'la':  ['/lib/la', 'browser.js'],
-                'sol': ['/lib/sol', 'la/si/do.js']
+                'foo': { p: '/lib/foo', m: 'bar/far/f.js' },
+                'la':  { p: '/lib/la',  m: 'browser.js' },
+                'sol': { p: '/lib/sol', m: 'la/si/do.js' }
             });
         });
     });
@@ -71,10 +71,10 @@ describe('Project Mapper', function () {
 
         it('with "aggressive" approach', function () {
             expect(projectMap.packages).to.eql({
-                'foo': ['/lib/foo', 'index.js'],
-                'bar': ['/lib/bar', 'index.js'],
-                'webpack': ['/lib/bar/node_modules/webpack', 'index.js'],
-                'socket.io': ['/lib/foo/node_modules/webpack/node_modules/socket.io', 'index.js']
+                'foo': { p: '/lib/foo', m: 'index.js' },
+                'bar': { p: '/lib/bar', m: 'index.js' },
+                'webpack': { p: '/lib/bar/node_modules/webpack', m: 'index.js' },
+                'socket.io': { p: '/lib/foo/node_modules/webpack/node_modules/socket.io', m: 'index.js'}
             });
         });
     });
@@ -93,8 +93,8 @@ describe('Project Mapper', function () {
 
         it('preferes package closer to the top level', function () {
             expect(projectMap.packages).to.eql({
-                'foo': ['/lib/foo', 'index.js'],
-                'webpack': ['/lib/webpack', 'index.js']
+                'foo': { p: '/lib/foo', m: 'index.js' },
+                'webpack': { p: '/lib/webpack', m: 'index.js' }
             });
         });
     });
@@ -110,23 +110,23 @@ describe('Project Mapper', function () {
         });
 
         it('finds regular (ported) Node module', function () {
-            expect(projectMap.packages['path'][0]).to.be.oneOf([
+            expect(projectMap.packages['path'].p).to.be.oneOf([
                 `${npm2nodeLibsDir}/path-browserify`,
                 `${npm3nodeLibsDir}/path-browserify`
             ]);
-            expect(projectMap.packages['path'][1]).to.equal('index.js');
+            expect(projectMap.packages['path'].m).to.equal('index.js');
         });
 
         it('finds stubbed Node module', function () {
-            expect(projectMap.packages['child_process']).to.eql(['/$node', 'node-support/stub.js']);
+            expect(projectMap.packages['child_process']).to.eql({ p: '/$node', m: 'node-support/stub.js' });
         });
 
         it('finds Node module with explicit browser version', function () {
-            expect(projectMap.packages['os'][0]).to.be.oneOf([
+            expect(projectMap.packages['os'].p).to.be.oneOf([
                 `${npm2nodeLibsDir}/os-browserify`,
                 `${npm3nodeLibsDir}/os-browserify`,
             ]);
-            expect(projectMap.packages['os'][1]).to.equal('browser.js');
+            expect(projectMap.packages['os'].m).to.equal('browser.js');
         });
     });
 
