@@ -3,6 +3,7 @@ import {ProjectMap} from "../../src/project-mapper";
 import * as locator from '../../src/client/locator';
 import {joinUrl} from "../../src/client/locator";
 import {extractPackageNames} from "../../src/client/locator";
+
 describe('locate', function () {
     let projectMap: ProjectMap;
     let preProcess: { (name: string, parentName?: string, parentAddress?: string): string };
@@ -13,21 +14,23 @@ describe('locate', function () {
 
     before(function () {
         projectMap = {
-            packages: {
-                pkgX: { p: '/lib/pkgX', m: 'x.js' },
-                pkgY: { p: '/lib/pkgX/node_modules/pkgY', m: 'y.js'},
-                zlib: { p: '/$node/browserify-zlib', m: 'src/index.js' }
-            },
-            dirs: [
-                '/a/b.js',
-                '/lib/pkgX/foo/bar.js'
-            ]
+            packages: {},
+            dirs: []
         };
         preProcess = locator.preProcess.bind(null, projectMap);
         postProcess = locator.postProcess.bind(null, projectMap, baseUrl);
     });
 
     describe('preProcess()', function () {
+        
+        before(function () {
+            projectMap.packages = {
+                pkgX: { p: '/lib/pkgX', m: 'x.js' },
+                pkgY: { p: '/lib/pkgX/node_modules/pkgY', m: 'y.js'},
+                zlib: { p: '/$node/browserify-zlib', m: 'src/index.js' }
+            };
+        });
+
         it('appends automagically .js extension', function () {
             expect(preProcess('./a')).to.equal('./a.js');
             expect(preProcess('pkgX/data.json')).to.equal('/lib/pkgX/data.json')
@@ -57,6 +60,18 @@ describe('locate', function () {
     });
 
     describe('postProcess()', function () {
+
+        before(function () {
+            projectMap.packages = {
+                pkgX: { p: '/lib/pkgX', m: 'x.js' },
+                pkgY: { p: '/lib/pkgX/node_modules/pkgY', m: 'y.js'},
+            };
+            projectMap.dirs = [
+                '/a/b.js',
+                '/lib/pkgX/foo/bar.js'
+            ];
+        });
+
         it('identifies default index file in a directory', function () {
             expect(postProcess(`${baseUrl}a/b.js`)).to.equal(`${baseUrl}a/b/index.js`);
             expect(postProcess(`${baseUrl}a/b/`)).to.equal(`${baseUrl}a/b/index.js`);
@@ -91,9 +106,5 @@ describe('locate', function () {
                 .to.eql([]);
         });
     });
-
-
-    
-
 });
 
