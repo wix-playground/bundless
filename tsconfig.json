@@ -9,7 +9,7 @@
   "exclude": [
 	"node_modules",
 	"dist",
-	"typings/main.d.ts",
-	"typings/main"
+	"typings/browser.d.ts",
+	"typings/browser"
   ]
 }

@@ -1,25 +1,50 @@
-const Promise = (window['Promise']);
-function loadScript(url) {
+import {PackageBuilder} from "../../test-kit/project-driver";
+import {setupProject} from "./project-fixtures";
+import * as karma from 'karma';
+import {createTestServer} from "../../test-kit/test-server";
+import {Topology} from "../../src/types";
+import Promise = require("bluebird");
+import * as http from "http";
+
+
+function runTest(topology: Topology) {
     return new Promise((resolve, reject) => {
-        const element = <HTMLScriptElement> document.createElement('script');
-        element.src = url;
-        element.addEventListener('load', () => {
-            resolve();
+        createTestServer(topology).listen(3001, function (err) {
+            const staticServer: http.Server = this;
+            const karmaServer = new karma.Server({
+                port: 9876,
+                configFile: process.cwd() + '/karma.conf.js',
+                singleRun: true
+            }, (a,b,c) => {
+                staticServer.close(resolve);
+            });
+            if(err) {
+                reject(err);
+            } else {
+                karmaServer.start();
+            }
         });
-        element.addEventListener('error', () => {
-            reject();
-        });
-        document.body.appendChild(element);
     });
 }
 
-describe('e2e test', function () {
-    it("loads root module and all its dependencies", function () {
-        this.timeout(100000);
-        return loadScript('https://127.0.0.1:3000/$system')
-             .then(() => {
-                 window['$bundless'](System);
-                 return System.import('main.js');
-             });
+describe('Bundless', function () {
+    this.timeout(30000);
+    describe('loads sample project', function () {
+        const project: PackageBuilder = setupProject();
+
+        it('using simple topology', function () {
+            return runTest({
+                rootDir: project.getPath() + 'prd',
+                    srcDir: 'dist',
+                srcMount: '/',
+                libMount: '/node_modules',
+                nodeMount: '/$node',
+                systemMount: '/$system'
+            });
+        });
+
+        afterEach(function () {
+            project.dispose();
+        });
     });
 });
