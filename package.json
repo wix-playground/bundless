@@ -13,10 +13,10 @@
   "scripts": {
     "clean": "rimraf dist && mkdir dist",
     "pretest": "npm run build",
-    "test": "npm run test:e2e:browser && npm run test:integration && npm run test:unit",
+    "test": "npm run test:e2e && npm run test:integration && npm run test:unit",
     "test:unit": "mocha --reporter mocha-env-reporter ./dist/test/unit",
     "test:integration": "mocha --reporter mocha-env-reporter ./dist/test/integration",
-    "test:e2e:browser": "node ./dist/test/e2e/e2e-karma.js",
+    "test:e2e": "mocha --reporter mocha-env-reporter dist/test/e2e/e2e.spec.js",
     "build": "npm run clean && tsc",
     "prestart": "npm run build",
     "start": "node dist/src/index.js",
