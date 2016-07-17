@@ -13,16 +13,37 @@ function loadScript(url) {
     });
 }
 
-describe('e2e test', function () {
-    it("loads root module and all its dependencies", function () {
-        this.timeout(100000);
-        const config = window['__karma__'].config;
-        const hostname = 'http://' + config.host + ':' + config.port.toString();
-        return loadScript(hostname + '/$bundless')
-             .then(() => {
-                 System.config({ baseURL: config.baseURL });
-                 window['$bundless'](System);
-                 return System.import(config.mainModule);
-             });
+const karma = window['__karma__'];
+
+function finish(result, errors) {
+    karma.result({
+        id: '',
+        description: 'e2e',
+        suite: [],
+        success: result,
+        skipped: null,
+        time: 0,
+        log: [],
+        assertionErrors: errors
     });
-});
+    karma.complete();
+}
+
+
+
+const config = karma.config;
+const hostname = 'http://' + config.host + ':' + config.port.toString();
+karma.info({ total: 1 });
+karma.start = function () {
+    loadScript(hostname + '/$bundless')
+        .then(() => {
+            System.config({ baseURL: config.baseURL });
+            window['$bundless'](System);
+            return System.import(config.mainModule)
+                .catch(err => {
+                    console.error(err.message);
+                    finish(false, [err]);
+                })
+                .then(() => finish(true, []));
+        });
+};

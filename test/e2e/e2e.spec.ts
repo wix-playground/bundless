@@ -16,7 +16,8 @@ function runTest(mainModule: string, topology: Topology) {
             return runKarma(host, port, mainModule)
                 .then(() => new Promise((resolve) => {
                     staticServer.close(() => resolve(staticServer))
-                }));
+                }))
+                .finally(() => staticServer.close(() => Promise.resolve()));
         });
 }
 
@@ -38,7 +39,8 @@ describe('Bundless', function () {
                 libMount: '/node_modules',
                 nodeMount: '/$node',
                 systemMount: '/$system'
-            });
+            })
+                .then(() => console.log('WHAAAT 1'));
         });
 
         it('using simple topology (srcMount = "/")', function () {
@@ -49,10 +51,12 @@ describe('Bundless', function () {
                 libMount: '/lib',
                 nodeMount: '/$node',
                 systemMount: '/$system'
-            });
+            })
+                .then(() => console.log('WHAAAT 2'));
         });
 
         afterEach(function () {
+            console.log('afterEach');
             project.dispose();
         });
     });
