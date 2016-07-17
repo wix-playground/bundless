@@ -4,27 +4,28 @@ import {startStaticServer} from "../../test-kit/test-server";
 import {Topology} from "../../src/types";
 import Promise = require("bluebird");
 import * as http from "http";
-import {runKarma} from "../../test-kit/karma-server";
+import {startKarmaServer} from "../../test-kit/karma-server";
+import {expect} from "chai";
 
 const host = 'localhost';
 const port = 3000;
 
-function runTest(mainModule: string, topology: Topology) {
-    return Promise.resolve()
-        .then(() => startStaticServer(host, port, topology))
-        .then((staticServer: http.Server) => {
-            return runKarma(host, port, mainModule)
-                .then(() => new Promise((resolve) => {
-                    staticServer.close(() => resolve(staticServer))
-                }))
-                .finally(() => staticServer.close(() => Promise.resolve()));
-        });
-}
-
 describe('Bundless', function () {
     this.timeout(30000);
+
+
     describe('loads sample project', function () {
         let project: PackageBuilder;
+        let staticServer: http.Server;
+
+        function runTest(mainModule: string, topology: Topology) {
+            return Promise.resolve()
+                .then(() => startStaticServer(host, port, topology))
+                .then(result => staticServer = result)
+                .then(() => startKarmaServer(host, port, mainModule))
+                .then(passed => expect(passed).to.equal(true, 'Expected all tests to pass'));
+        }
+
 
         beforeEach(function () {
             project = setupProject();
@@ -32,7 +33,7 @@ describe('Bundless', function () {
 
 
         it('using simple topology', function () {
-            return runTest('modules/main.js', {
+            return runTest('mooodules/main.js', {
                 rootDir: project.getPath(),
                 srcDir: 'dist',
                 srcMount: '/modules',
@@ -40,7 +41,6 @@ describe('Bundless', function () {
                 nodeMount: '/$node',
                 systemMount: '/$system'
             })
-                .then(() => console.log('WHAAAT 1'));
         });
 
         it('using simple topology (srcMount = "/")', function () {
@@ -52,12 +52,11 @@ describe('Bundless', function () {
                 nodeMount: '/$node',
                 systemMount: '/$system'
             })
-                .then(() => console.log('WHAAAT 2'));
         });
 
         afterEach(function () {
-            console.log('afterEach');
             project.dispose();
+            staticServer.close();
         });
     });
 });
