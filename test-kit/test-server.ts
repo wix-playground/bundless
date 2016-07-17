@@ -6,12 +6,13 @@ import * as bundless from '../src';
 import {defTopology as defaultTopology} from '../src/defaults';
 import _ = require('lodash');
 import {Server} from "http";
+import Promise = require('bluebird');
 
 function normalize(route: string): string {
     return route.replace(/[$]/g, () => '[$]');
 }
 
-export function createTestServer(topologyOverrides: Topology): Server {
+export function startStaticServer(host: string, port: number, topologyOverrides: Topology): Promise<Server> {
     const topology: Topology = _.merge({}, defaultTopology, topologyOverrides);
     const app: Application = express();
     app.use(normalize(topology.libMount), express.static(path.resolve(topology.rootDir, 'node_modules')));
@@ -21,5 +22,13 @@ export function createTestServer(topologyOverrides: Topology): Server {
         const script = bundless.generateBootstrapScript(topology);
         res.end(script);
     });
-    return app;
+    return new Promise<Server>((resolve, reject) => {
+        app.listen(port, host, function (err) {
+            if(err) {
+                reject(err);
+            } else {
+                resolve(this);
+            }
+        })
+    });
 }

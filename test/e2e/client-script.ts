@@ -16,11 +16,13 @@ function loadScript(url) {
 describe('e2e test', function () {
     it("loads root module and all its dependencies", function () {
         this.timeout(100000);
-        return loadScript('http://127.0.0.1:3001/$bundless')
+        const config = window['__karma__'].config;
+        const hostname = 'http://' + config.host + ':' + config.port.toString();
+        return loadScript(hostname + '/$bundless')
              .then(() => {
-                 System.config({ baseURL: 'http://localhost:3001'})
+                 System.config({ baseURL: config.baseURL });
                  window['$bundless'](System);
-                 return System.import('modules/main.js');
+                 return System.import(config.mainModule);
              });
     });
 });
