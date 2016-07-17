@@ -20,7 +20,7 @@ describe('e2e test', function () {
              .then(() => {
                  System.config({ baseURL: 'http://localhost:3001'})
                  window['$bundless'](System);
-                 return System.import('main.js');
+                 return System.import('modules/main.js');
              });
     });
 });

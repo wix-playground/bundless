@@ -8,15 +8,22 @@ import * as http from "http";
 
 
 function runTest(topology: Topology) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve: Function, reject: Function) => {
         createTestServer(topology).listen(3001, function (err) {
             const staticServer: http.Server = this;
             const karmaServer = new karma.Server({
                 port: 9876,
                 configFile: process.cwd() + '/karma.conf.js',
                 singleRun: true
-            }, (a,b,c) => {
-                staticServer.close(resolve);
+            });
+            karmaServer.on('run_complete', (browsers, results) => {
+                staticServer.close(() => {
+                    if(results.error) {
+                        reject(new Error('Some tests have failed.'));
+                    } else {
+                        resolve()
+                    }
+                });
             });
             if(err) {
                 reject(err);
@@ -34,9 +41,9 @@ describe('Bundless', function () {
 
         it('using simple topology', function () {
             return runTest({
-                rootDir: project.getPath() + 'prd',
-                    srcDir: 'dist',
-                srcMount: '/',
+                rootDir: project.getPath(),
+                srcDir: 'dist',
+                srcMount: '/modules',
                 libMount: '/node_modules',
                 nodeMount: '/$node',
                 systemMount: '/$system'
