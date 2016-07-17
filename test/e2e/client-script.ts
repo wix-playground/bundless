@@ -41,8 +41,8 @@ karma.start = function () {
             window['$bundless'](System);
             return System.import(config.mainModule)
                 .catch(err => {
-                    console.log('ERR', err.message);
-                    finish(false, [err]);
+                    karma.log('ERROR', [err.message]);
+                    finish(false, [err.message]);
                 })
                 .then(() => finish(true, []));
         });

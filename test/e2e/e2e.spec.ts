@@ -33,7 +33,7 @@ describe('Bundless', function () {
 
 
         it('using simple topology', function () {
-            return runTest('mooodules/main.js', {
+            return runTest('modules/main.js', {
                 rootDir: project.getPath(),
                 srcDir: 'dist',
                 srcMount: '/modules',
