@@ -1,18 +1,10 @@
 import {Topology} from "../src/types";
 import express = require('express');
 import {Application} from "express";
-import path = require('path');
-import * as bundless from '../src';
-import {defTopology as defaultTopology} from '../src/defaults';
-import _ = require('lodash');
 import {Server} from "http";
 import Promise = require('bluebird');
 import {Request, Response} from "express";
 import bundlessExpress from "../sample-server/express";
-
-function normalize(route: string): string {
-    return route.replace(/[$]/g, () => '[$]');
-}
 
 function log() {
     return (req:Request, res:Response, next:Function) => {
