@@ -40,7 +40,7 @@ describe('Bundless', function () {
                 libMount: '/node_modules',
                 nodeMount: '/$node',
                 systemMount: '/$system'
-            })
+            });
         });
 
         it('using simple topology (srcMount = "/")', function () {
@@ -49,6 +49,17 @@ describe('Bundless', function () {
                 srcDir: 'dist',
                 srcMount: '/',
                 libMount: '/lib',
+                nodeMount: '/$node',
+                systemMount: '/$system'
+            });
+        });
+
+        it('using complex mountpoints', function () {
+            return runTest('foo/bar/modules/main.js', {
+                rootDir: project.getPath(),
+                srcDir: 'dist',
+                srcMount: '/foo/bar/modules',
+                libMount: '/baz/lib',
                 nodeMount: '/$node',
                 systemMount: '/$system'
             })
