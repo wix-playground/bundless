@@ -1,8 +1,7 @@
 import _ = require('lodash');
 import {collectDirInfo} from "./dir-structure";
 import path = require('path');
-import {Topology, ServerConfig, ProjectMapperOptions, ProjectInfo, BootstrapScriptOptions} from "./types";
-const spdyKeys = require('spdy-keys');
+import {Topology, ProjectMapperOptions, ProjectInfo, BootstrapScriptOptions} from "./types";
 import * as nodeSupport from './node-support';
 
 export function generateProjectInfo(bootstrapOptions:BootstrapScriptOptions):ProjectInfo {
@@ -34,11 +33,6 @@ export const defTopology: Topology = {
 	nodeMount: '/$node',
 	systemMount: '/$system'
 };
-
-export const defServerConfig: ServerConfig = _.merge({}, defTopology, {
-	ssl: spdyKeys,
-	forceHttp1: false
-});
 
 export const defProjectMapperOptions: ProjectMapperOptions = {
 	nodeLibs: true,
