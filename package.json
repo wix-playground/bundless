@@ -1,6 +1,6 @@
 {
   "name": "bundless",
-  "version": "0.0.34",
+  "version": "0.0.35",
   "description": "Experimental bundle-free dependency server",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
