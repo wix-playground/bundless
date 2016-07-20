@@ -1,6 +1,6 @@
 # Bundless
 
-Experimental bundle-free JavaScript dependency server/loader.
+Experimental bundle-free JavaScript dependency loader.
 
 Bundless is an experimental dependency loader inspired by JSPM, browserify
 and webpack, while trying to solve some of their inherent problems. Its 
