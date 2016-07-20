@@ -38,8 +38,7 @@ describe('Bundless', function () {
                 srcDir: 'dist',
                 srcMount: '/modules',
                 libMount: '/node_modules',
-                nodeMount: '/$node',
-                systemMount: '/$system'
+                nodeMount: '/$node'
             });
         });
 
@@ -49,8 +48,7 @@ describe('Bundless', function () {
                 srcDir: 'dist',
                 srcMount: '/',
                 libMount: '/lib',
-                nodeMount: '/$node',
-                systemMount: '/$system'
+                nodeMount: '/$node'
             });
         });
 
@@ -60,8 +58,7 @@ describe('Bundless', function () {
                 srcDir: 'dist',
                 srcMount: '/foo/bar/modules',
                 libMount: '/baz/lib',
-                nodeMount: '/$node',
-                systemMount: '/$system'
+                nodeMount: '/$node'
             })
         });
 

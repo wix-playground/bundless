@@ -4,12 +4,13 @@ import * as bundless from '../src';
 import {defTopology as defaultTopology} from '../src/defaults';
 import _ = require('lodash');
 import {Router} from "express";
+import express = require('express');
 
 function normalize(route: string): string {
     return route.replace(/[$]/g, () => '[$]');
 }
 
-export default function createExpressRouter(express, topologyOverrides: Topology): Router {
+export default function createExpressRouter(topologyOverrides: Topology): Router {
     const topology: Topology = _.merge({}, defaultTopology, topologyOverrides);
     const script = bundless.generateBootstrapScript(topology);
     const app: Router = express();

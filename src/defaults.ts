@@ -17,7 +17,6 @@ export function generateProjectInfo(bootstrapOptions:BootstrapScriptOptions):Pro
 		srcMount: bootstrapOptions.srcMount,
 		libMount: bootstrapOptions.libMount,
 		nodeMount: bootstrapOptions.nodeMount,
-		systemMount: bootstrapOptions.systemMount,
 		srcInfo: actualOptions.collector(srcDir, excludeFromSrc),
 		libInfo: actualOptions.collector(libDir),
 		nodeLibInfo: actualOptions.nodeLibs? actualOptions.collector(path.join(nodeSupport.rootDir, 'node_modules')) : undefined
@@ -30,8 +29,7 @@ export const defTopology: Topology = {
 	srcDir: 'dist',
 	srcMount: '/modules',
 	libMount: '/lib',
-	nodeMount: '/$node',
-	systemMount: '/$system'
+	nodeMount: '/$node'
 };
 
 export const defProjectMapperOptions: ProjectMapperOptions = {

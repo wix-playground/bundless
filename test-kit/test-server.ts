@@ -28,7 +28,7 @@ export function startStaticServer(host: string, port: number, topologyOverrides:
     if(options.debug) {
         app.use(log());
     }
-    app.use(bundlessExpress(express, topologyOverrides));
+    app.use(bundlessExpress(topologyOverrides));
     return new Promise<Server>((resolve, reject) => {
         app.listen(port, host, function (err) {
             if(err) {

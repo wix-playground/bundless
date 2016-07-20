@@ -21,7 +21,6 @@ describe('Project Mapper', function () {
             srcMount: '/local',
             libMount: '/lib',
             nodeMount: '/$node',
-            systemMount: '/$system',
             mapper: {
                 nodeLibs: false
             }

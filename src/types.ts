@@ -24,7 +24,6 @@ export interface Topology {
     srcMount?: string;
     libMount?: string;
     nodeMount?: string;
-    systemMount?: string;
 }
 
 export interface ProjectMapperOptions {
