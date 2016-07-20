@@ -13,8 +13,7 @@ describe('url resolver', function () {
                 srcDir: 'dist',
                 srcMount: '/',
                 libMount: '/node_modules',
-                nodeMount: '/$node',
-                systemMount: '/$system'
+                nodeMount: '/$node'
             };
             resolve = resolveUrlToFile.bind(null, topology);
         });
@@ -37,8 +36,7 @@ describe('url resolver', function () {
                 srcDir: 'dist',
                 srcMount: '/local',
                 libMount: '/lib',
-                nodeMount: '/$node',
-                systemMount: '/$system'
+                nodeMount: '/$node'
             };
             resolve = resolveUrlToFile.bind(null, topology);
         });

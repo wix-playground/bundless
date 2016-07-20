@@ -6,6 +6,7 @@ import Promise = require("bluebird");
 import * as http from "http";
 import {startKarmaServer} from "../../test-kit/karma-server";
 import {expect} from "chai";
+import {defTopology} from "../../src/defaults";
 
 const host = 'localhost';
 const port = 3000;
@@ -15,58 +16,63 @@ describe('Bundless', function () {
 
 
     describe('loads sample project', function () {
-        let project: PackageBuilder;
+
         let staticServer: http.Server;
 
-        function runTest(mainModule: string, topology: Topology) {
+        function runTest(topology: Topology) {
+            const mainModule = topology.srcMount === '/' ? 'main.js' : `${topology.srcMount.slice(1)}/main.js`;
+            const project: PackageBuilder = setupProject(topology.srcDir);
+            topology.rootDir = project.getPath();
             return Promise.resolve()
                 .then(() => startStaticServer(host, port, topology))
                 .then(result => staticServer = result)
                 .then(() => startKarmaServer(host, port, mainModule))
-                .then(passed => expect(passed).to.equal(true, 'Expected all tests to pass'));
+                .then(passed => expect(passed).to.equal(true, 'Expected all tests to pass'))
+                .then(() => project.dispose());
         }
 
 
-        beforeEach(function () {
-            project = setupProject();
+        it('using default topology', function () {
+            return runTest(defTopology);
         });
 
-
         it('using simple topology', function () {
-            return runTest('modules/main.js', {
-                rootDir: project.getPath(),
+            return runTest({
                 srcDir: 'dist',
                 srcMount: '/modules',
                 libMount: '/node_modules',
-                nodeMount: '/$node',
-                systemMount: '/$system'
+                nodeMount: '/$node'
             });
         });
 
         it('using simple topology (srcMount = "/")', function () {
-            return runTest('main.js', {
-                rootDir: project.getPath(),
+            return runTest({
                 srcDir: 'dist',
                 srcMount: '/',
                 libMount: '/lib',
-                nodeMount: '/$node',
-                systemMount: '/$system'
+                nodeMount: '/$node'
             });
         });
 
         it('using complex mountpoints', function () {
-            return runTest('foo/bar/modules/main.js', {
-                rootDir: project.getPath(),
+            return runTest({
                 srcDir: 'dist',
                 srcMount: '/foo/bar/modules',
                 libMount: '/baz/lib',
-                nodeMount: '/$node',
-                systemMount: '/$system'
+                nodeMount: '/$node'
+            })
+        });
+
+        it('serving sources from the root', function () {
+            return runTest({
+                srcDir: '.',
+                srcMount: '/foo/bar/modules',
+                libMount: '/baz/lib',
+                nodeMount: '/$node'
             })
         });
 
         afterEach(function () {
-            project.dispose();
             staticServer.close();
         });
     });

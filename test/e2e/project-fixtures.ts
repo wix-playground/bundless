@@ -2,17 +2,18 @@ import {PackageBuilder, default as projectDriver} from "../../test-kit/project-d
 import tmp = require('tmp');
 import {SynchrounousResult} from "tmp";
 import {supportedLibs} from "../../src/node-support";
+import {Topology} from "../../sample-server";
 
 
-export function setupProject(): PackageBuilder {
+export function setupProject(srcDir: string): PackageBuilder {
     const tempDir: SynchrounousResult = tmp.dirSync();
     const project = projectDriver(tempDir.name)
-        .addMainFile('dist/main.js',`
+        .addMainFile(`${srcDir}/main.js`,`
         var a = require("./a");
         var x = require("pkgX");  
         var x2 = require("pkgX/sub");  
      `)
-        .addFile('dist/a.js', supportedLibs.map(libName => `var ${libName} = require("${libName}");`).join('\n'));
+        .addFile(`${srcDir}/a.js`, supportedLibs.map(libName => `var ${libName} = require("${libName}");`).join('\n'));
 
     const pkgX = project.addPackage('pkgX')
         .addMainFile('x.js', `
