@@ -26,7 +26,7 @@ export function generateProjectInfo(bootstrapOptions:BootstrapScriptOptions):Pro
 
 export const defTopology: Topology = {
 	rootDir: process.cwd(),
-	srcDir: 'dist',
+	srcDir: 'src',
 	srcMount: '/modules',
 	libMount: '/lib',
 	nodeMount: '/$node'
