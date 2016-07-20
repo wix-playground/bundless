@@ -64,7 +64,7 @@ const topology = {
     srcMount: '/modules',       // URL prefix of local files
     libMount: '/lib',           // URL prefix of libraries (npm dependencies)
     nodeMount: '/$node',        // Internal URL prefix of Node.js libraries
-
+};
 ```
 
 For more details, check the /sample-server/express.ts file.
