@@ -1,7 +1,7 @@
 {
   "name": "bundless",
   "version": "0.0.37",
-  "description": "Experimental bundle-free dependency server",
+  "description": "Experimental bundle-free dependency loader",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
   "author": "Jiri Tobisek <jiri@wix.com> (https://github.com/tobich)",
