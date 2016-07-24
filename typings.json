@@ -1,27 +1,27 @@
 {
   "dependencies": {
-    "bluebird": "registry:npm/bluebird#3.3.4+20160531224558",
-    "chai": "registry:npm/chai#3.5.0+20160415060238",
-    "lodash": "registry:npm/lodash#4.0.0+20160416211519",
-    "mime": "registry:npm/mime#1.3.0+20160423043021",
+    "bluebird": "registry:npm/bluebird#3.3.4+20160723033700",
+    "lodash": "registry:npm/lodash#4.0.0+20160723033700",
+    "mime": "registry:npm/mime#1.3.0+20160723033700",
     "object-assign": "registry:npm/object-assign#4.0.1+20160301180549",
-    "semver": "registry:npm/semver#5.0.0+20160211003958",
-    "sinon": "registry:npm/sinon#1.16.0+20160427193336",
-    "sinon-chai": "registry:npm/sinon-chai#2.8.0+20160310030142"
+    "semver": "registry:npm/semver#5.0.0+20160723033700"
   },
   "globalDependencies": {
-    "express": "registry:dt/express#4.0.0+20160317120654",
-    "express-serve-static-core": "registry:dt/express-serve-static-core#0.0.0+20160322035842",
-    "fs-extra": "registry:dt/fs-extra#0.0.0+20160319124112",
-    "karma": "registry:dt/karma#0.13.9+20160501125529",
-    "log4js": "registry:dt/log4js#0.0.0+20160316155526",
-    "mocha": "registry:dt/mocha#2.2.5+20160317120654",
-    "node": "registry:dt/node#6.0.0+20160514165920",
-    "serve-static": "registry:dt/serve-static#0.0.0+20160501131543",
-    "systemjs": "registry:dt/systemjs#0.18.4+20160417155658",
-    "tmp": "registry:dt/tmp#0.0.0+20160514170650"
+    "es6-shim": "registry:dt/es6-shim#0.31.2+20160602141504",
+    "express": "registry:dt/express#4.0.0+20160708185218",
+    "express-serve-static-core": "registry:dt/express-serve-static-core#4.0.0+20160715232503",
+    "node": "registry:dt/node#6.0.0+20160720070758",
+    "serve-static": "registry:dt/serve-static#0.0.0+20160606155157",
+    "systemjs": "registry:dt/systemjs#0.19.29+20160702105636"
   },
-  "ambientDependencies": {
-    "express": "registry:dt/express#4.0.0+20160708185218"
+  "devDependencies": {
+    "chai": "registry:npm/chai#3.5.0+20160723033700"
+  },
+  "globalDevDependencies": {
+    "fs-extra": "registry:dt/fs-extra#0.0.0+20160517121359",
+    "karma": "registry:dt/karma#0.13.9+20160720063042",
+    "log4js": "registry:dt/log4js#0.0.0+20160608042355",
+    "mocha": "registry:dt/mocha#2.2.5+20160720003353",
+    "tmp": "registry:dt/tmp#0.0.0+20160514170650"
   }
 }
