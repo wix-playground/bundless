@@ -1,4 +1,3 @@
-const Promise = (window['Promise']);
 function loadScript(url) {
     return new Promise((resolve, reject) => {
         const element = <HTMLScriptElement> document.createElement('script');
