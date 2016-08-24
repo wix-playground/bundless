@@ -83,7 +83,6 @@ a bunch of files. This, of course, raises some performance issues, comparing
 to "bundled" solutions. So far, we see HTTP/2 serving as a solution,
 while researching other possibilities.
 
-
 ## Contributing
 
 Bundless is currently in a wild, alpha, development-and-research stage.
