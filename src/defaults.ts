@@ -1,8 +1,7 @@
 import _ = require('lodash');
 import {collectDirInfo} from "./dir-structure";
 import path = require('path');
-import {Topology, ServerConfig, ProjectMapperOptions, ProjectInfo, BootstrapScriptOptions} from "./types";
-const spdyKeys = require('spdy-keys');
+import {Topology, ProjectMapperOptions, ProjectInfo, BootstrapScriptOptions} from "./types";
 import * as nodeSupport from './node-support';
 
 export function generateProjectInfo(bootstrapOptions:BootstrapScriptOptions):ProjectInfo {
@@ -18,7 +17,6 @@ export function generateProjectInfo(bootstrapOptions:BootstrapScriptOptions):Pro
 		srcMount: bootstrapOptions.srcMount,
 		libMount: bootstrapOptions.libMount,
 		nodeMount: bootstrapOptions.nodeMount,
-		systemMount: bootstrapOptions.systemMount,
 		srcInfo: actualOptions.collector(srcDir, excludeFromSrc),
 		libInfo: actualOptions.collector(libDir),
 		nodeLibInfo: actualOptions.nodeLibs? actualOptions.collector(path.join(nodeSupport.rootDir, 'node_modules')) : undefined
@@ -28,17 +26,11 @@ export function generateProjectInfo(bootstrapOptions:BootstrapScriptOptions):Pro
 
 export const defTopology: Topology = {
 	rootDir: process.cwd(),
-	srcDir: 'dist',
+	srcDir: 'src',
 	srcMount: '/modules',
 	libMount: '/lib',
-	nodeMount: '/$node',
-	systemMount: '/$system'
+	nodeMount: '/$node'
 };
-
-export const defServerConfig: ServerConfig = _.merge({}, defTopology, {
-	ssl: spdyKeys,
-	forceHttp1: false
-});
 
 export const defProjectMapperOptions: ProjectMapperOptions = {
 	nodeLibs: true,

@@ -1,11 +1,12 @@
 # Bundless
 
-Experimental bundle-free JavaScript dependency server/loader.
+Experimental bundle-free JavaScript dependency loader.
 
-Bundless is an experimental, HTTP/2-based alternative to browserify and 
-webpack. Its goal is to deliver all JavaScript dependencies to the client
-without creating aggregate files ("bundles"), managing complex configurations
-or migrating to alternative package managers.
+Bundless is an experimental dependency loader inspired by JSPM, browserify
+and webpack, while trying to solve some of their inherent problems. Its 
+goal is to deliver all JavaScript dependencies to the client without 
+creating aggregate files ("bundles"), while sticking to npm as the 
+package manager and to its project structure.
 
 ## Installation
 
@@ -13,49 +14,74 @@ or migrating to alternative package managers.
 
 ## Usage
 
-All you need to do is to create an instance of Bundless server:
+At its core, bundless generates a script and set of hooks which make your
+local project accessible to the SystemJS loader without any additional
+configuration.
+
+For an easy start, use the sample ExpressJS router included in the project:
 
 ```javascript
-    var bundless = require('bundless');
-    
-    var configuration = {...};
-    bundless(configuration).listen(3000, 'localhost', function (err) {
-        console.log("Bundless listening at " + this.address().address + ":" + this.address().port);
-    });
+const bundless = require('bundless/sample-server');
+const express = require('express');
+const path = require('path');
+
+const app = express();
+const topology = {};
+app.use(bundless.express(topology));
+app.get('/', (req, res) => res.sendFile(path.resolve(process.cwd(), 'index.html')));
+
+app.listen(8080, function (err) {
+    err ? console.error(err) : console.log(`Listening at ${this.address().address}:${this.address().port}`);
+});
 ```
 
-`configuration` is an optional argument, which can be a subset of the following
-data structure:
+Your `/index.html` file should then contain:
+ 
+```html
+<body>
+    <script src="/lib/systemjs/dist/system.js"></script>
+    <script src="/$bundless"></script>
+    <script>
+        $bundless(System);
+        System.import('/modules/main');
+    </script>
+</body>
+```
+
+
+(Note that you must have SystemJS installed.)
+
+Your entry point, in this example, should be then `src/main.js`.
+ 
+You can modify your application structure by setting properties of the 
+`topology` variable:
 
 ```javascript
-var defaultConfiguration = {
+
+const topology = {
     rootDir: process.cwd(),
-    srcDir: 'dist',             // Your local .js files, relative to rootDir
+    srcDir: 'src',             // Your local .js files, relative to rootDir
     srcMount: '/modules',       // URL prefix of local files
     libMount: '/lib',           // URL prefix of libraries (npm dependencies)
     nodeMount: '/$node',        // Internal URL prefix of Node.js libraries
-    systemMount: '/$system'     // Internal URL of the system bootstrap,
-    ssl: require('spdy-keys')   // SSL certificates
 };
 ```
 
-You'll most likely override `srcDir` and perhaps `rootDir`. Remaining
-properties give you extra control over your server topology.
+For more details, check the /sample-server/express.ts file.
 
-This example will run server on `https://localhost:3000`.
+Note, that bundless should work with any static web server, provided
+it has been configured according to the topology.
 
-In your .html file/template, include the following:
+## How it works
 
-```html
-    <body>
-        ... 
-        <script src="https://localhost:3000/$system" type="text/javascript"></script>
-        <script type="text/javascript">
-            System.import('your/own/main/package');
-        </script>
+Bundless is a set of hooks which lets the browser to resolve and load
+dependencies (via SystemJS) in almost exactly the same way as NodeJS does, 
+with some neat tricks inspired mostly by browserify.
 
-```
-
+This, of course, means that for larger projects, we're going to load quite
+a bunch of files. This, of course, raises some performance issues, comparing
+to "bundled" solutions. So far, we see HTTP/2 serving as a solution,
+while researching other possibilities.
 
 ## Contributing
 
@@ -68,15 +94,6 @@ suggestions and bits of wisdom from the community.
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request
-
-<!--## History-->
-
-
-
-
-<!--## Credits
-
-TODO: Write credits-->
 
 ## License
 

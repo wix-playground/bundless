@@ -8,8 +8,8 @@ export function normalize(origNormalize, baseURL:string, locator, projectMap:Obj
 				const result = locator.postProcess(projectMap, baseURL, resolvedName, noJSExtension);
 				log(`postProcess() ${name}: ${resolvedName} -> ${result}`);
 				if(result === breakpointAt) {
-					name, parentName, parentAddress, newName, resolvedName, result;
-					debugger;
+					name, parentName, parentAddress, newName, resolvedName, result;		/* tslint:disable */
+					debugger;	/* tslint:enable */
 				}
 				return result;
 			});

@@ -1,4 +1,4 @@
-import fs = require('fs-extra');
+import fs = require('fs');
 import path = require('path');
 import os = require('os');
 import {DirInfo, DirInfoDict} from "./types";
