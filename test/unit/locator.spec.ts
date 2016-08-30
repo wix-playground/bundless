@@ -1,8 +1,7 @@
 import {expect} from 'chai';
 import {ProjectMap} from "../../src/project-mapper";
 import * as locator from '../../src/client/locator';
-import {joinUrl} from "../../src/client/locator";
-import {extractPackageNames} from "../../src/client/locator";
+import {parseUrl, ParsedUrl, applyFileRemapping, joinUrl} from "../../src/client/locator";
 
 describe('locate', function () {
     let projectMap: ProjectMap;
@@ -63,13 +62,17 @@ describe('locate', function () {
 
         before(function () {
             projectMap.packages = {
-                pkgX: { p: '/lib/pkgX', m: 'x.js' },
+                pkgX: { p: '/lib/pkgX', m: 'x.js', r: { './funky.js': './monkey.js' } },
                 pkgY: { p: '/lib/pkgX/node_modules/pkgY', m: 'y.js'},
             };
             projectMap.dirs = [
                 '/a/b.js',
                 '/lib/pkgX/foo/bar.js'
             ];
+        });
+        
+        it('applies file remapping', function () {
+            expect(postProcess(`${baseUrl}lib/pkgX/funky.js`)).to.equal(`${baseUrl}lib/pkgX/monkey.js`)
         });
 
         it('identifies default index file in a directory', function () {
@@ -80,7 +83,7 @@ describe('locate', function () {
             expect(postProcess(`${baseUrl}lib/pkgX/foo/bar/`)).to.equal(`${baseUrl}lib/pkgX/foo/bar/index.js`);
         });
 
-        it('resolves result of Systen.normalize() as package', function () {
+        it('resolves result of System.normalize() as package', function () {
             expect(postProcess(`${baseUrl}lib/pkgX/node_modules/pkgY`)).to.equal(`${baseUrl}lib/pkgX/node_modules/pkgY/y.js`);
             expect(postProcess(`${baseUrl}lib/pkgX/node_modules/pkgY/`)).to.equal(`${baseUrl}lib/pkgX/node_modules/pkgY/y.js`);
         });
@@ -95,16 +98,67 @@ describe('locate', function () {
         });
     });
 
-    describe('extractPackageNames()', function () {
-        it('Extracts package names :)', function () {
-            expect(extractPackageNames(baseUrl, libMount, `${baseUrl}${libMount}/pkgX/node_modules/pkgY/y.js`))
-                .to.eql(['pkgX', 'pkgY']);
+    describe('parseUrl()', function () {
+        it('parses url (1)', function () {
+            expect(parseUrl(`${baseUrl}${libMount}/pkgX/foo/bar/x.js`, baseUrl, libMount)).to.eql({
+                pkg: 'pkgX',
+                pkgPath: 'lib/pkgX',
+                localPath: 'foo/bar/x.js',
+                ext: '.js'
+            });
         });
-
+        it('parses url (2)', function () {
+            expect(parseUrl(`${baseUrl}${libMount}/pkgX`, baseUrl, libMount)).to.eql({
+                pkg: 'pkgX',
+                pkgPath: 'lib/pkgX',
+                localPath: '',
+                ext: ''
+            });
+        });
+        it('parses url (3)', function () {
+            expect(parseUrl(`${baseUrl}${libMount}/pkgX/`, baseUrl, libMount)).to.eql({
+                pkg: 'pkgX',
+                pkgPath: 'lib/pkgX',
+                localPath: '',
+                ext: ''
+            });
+        });
+        it('parses url (4)', function () {
+            expect(parseUrl(`${baseUrl}${libMount}/pkgX/node_modules/pkgY/y.js`, baseUrl, libMount)).to.eql({
+                pkg: 'pkgY',
+                pkgPath: 'lib/pkgX/node_modules/pkgY',
+                localPath: 'y.js',
+                ext: '.js'
+            });
+        });
         it('Ignores non-lib path', function () {
-            expect(extractPackageNames(baseUrl, libMount, `${baseUrl}a/b/c/d.js`))
-                .to.eql([]);
+            expect(parseUrl(`${baseUrl}a/b/c/d.js`, baseUrl, libMount)).to.eql({
+                pkg: '',
+                pkgPath: '',
+                localPath: 'a/b/c/d.js',
+                ext: '.js'
+            });
         });
     });
+    
+    describe('applyFileRemapping()', function () {
+        it('xxx', function () {
+            const projectMap: ProjectMap = {
+                packages: {
+                    pkgX: { p: '/lib/pkgX', m: 'x.js', r: { './funky.js': './monkey.js' } }
+                },
+                dirs: []
+            };
+            const url: ParsedUrl = {
+                pkg: 'pkgX',
+                pkgPath: 'pkgX',
+                localPath: 'funky.js',
+                ext: '.js'
+            };
+            expect(applyFileRemapping(projectMap, url)).to.eql('pkgX/monkey.js');    
+        });
+        
+    });
+    
 });
 

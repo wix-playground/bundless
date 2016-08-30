@@ -127,6 +127,7 @@ function collectIndexDirs(root: DirInfo, prefix: string): string[] {
 export type PackageRec = {
     p: string;  // package path
     m: string;  // main file local path
+    r?: { [fileName: string]: string } 
 };
 
 export type PackageDict = { [pkgName: string]: PackageRec };
