@@ -9,6 +9,15 @@ function getPackageVersion(pkg: DirInfo): string {
     return pkg.children['package.json']['content']['version'] || '0.0.0';
 }
 
+function resolveFileRemapping(pkg: DirInfo): FileRemapping {
+    const browserProp = pkg.children['package.json']['content']['browser'];
+    if(browserProp && typeof browserProp === 'object') {
+        return browserProp;
+    } else {
+        return null;
+    }
+}
+
 export function traverseDirInfo<T>(root: DirInfo, visitor: (node: DirInfo) => void): void {
     if(root) {
         visitor.call(null, root);
@@ -97,7 +106,12 @@ function buildPkgDict(dirInfo: DirInfo, libMount: string, options: PackageDictOp
         const pkg: DirInfo = pkgDict[pkgName];
         const pkgPath = libMount + pkg.path.slice(dirInfo.path.length);
         const mainFilePath = resolveMainPkgFile(pkg);
-        finalDict[pkgName] = { p: pkgPath, m: mainFilePath };
+        const remapping: FileRemapping = resolveFileRemapping(pkg);
+        const pkgRec: PackageRec = { p: pkgPath, m: mainFilePath };
+        if(remapping) {
+            pkgRec.r = remapping;
+        }
+        finalDict[pkgName] = pkgRec;
     }
     
     return finalDict;
@@ -124,15 +138,18 @@ function collectIndexDirs(root: DirInfo, prefix: string): string[] {
 
 // These properties have short names because we're trying to make the project map as small as possible
 
+export type FileRemapping = { [fileName: string]: string };
+
 export type PackageRec = {
     p: string;  // package path
     m: string;  // main file local path
-    r?: { [fileName: string]: string } 
+    r?:  FileRemapping;
 };
 
 export type PackageDict = { [pkgName: string]: PackageRec };
 
 export interface ProjectMap {
+    libMount: string;
     packages: PackageDict;
     dirs: string[];
 }
@@ -151,11 +168,12 @@ function getNodeLibMap(nodeMount: string, nodeLibStructure: DirInfo): ProjectMap
     });
 
     const dirs = collectIndexDirs(nodeLibStructure, nodeMount);
-    return { packages, dirs };
+    return { libMount: '', packages, dirs };
 }
 
 function mergeProjectMaps(map1: ProjectMap, map2: ProjectMap): ProjectMap {
     return {
+        libMount: map1.libMount,
         packages: _.assign<any, PackageDict, PackageDict, PackageDict>({}, map1.packages, map2.packages),
         dirs: map1.dirs.concat(map2.dirs)
     };
@@ -169,6 +187,7 @@ export function getProjectMap(projInfo: ProjectInfo): ProjectMap {
         .concat(collectIndexDirs(projInfo.libInfo, projInfo.libMount));
 
     const projectMap: ProjectMap = {
+        libMount: projInfo.libMount.slice(1),
         packages,
         dirs
     };

@@ -25,7 +25,7 @@ export function setupProject(srcDir: string): PackageBuilder {
          `)
         .addToPackageJson({
             browser: {
-                './bus': './sub'
+                './bus.js': './sub.js'
             }
         })
         .addFile('sub.js','')

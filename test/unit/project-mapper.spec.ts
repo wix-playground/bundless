@@ -39,14 +39,24 @@ describe('Project Mapper', function () {
             project
                 .addPackage('sol').addJspmMainFile('la/si/do.js');
 
+            project
+                .addPackage('do')
+                    .addToPackageJson({
+                        browser: {
+                            './bus.js': './sub.js'
+                        }
+                    });
+
             projectMap = getProjectMap(generateProjectInfo(topology));
         });
 
         it('as correct project map', function () {
+            expect(projectMap.libMount).to.eql('lib');
             expect(projectMap.packages).to.eql({
                 'foo': { p: '/lib/foo', m: 'bar/far/f.js' },
                 'la':  { p: '/lib/la',  m: 'browser.js' },
-                'sol': { p: '/lib/sol', m: 'la/si/do.js' }
+                'sol': { p: '/lib/sol', m: 'la/si/do.js' },
+                'do':  { p: '/lib/do', m: 'index.js', r: { './bus.js': './sub.js' } }
             });
         });
     });

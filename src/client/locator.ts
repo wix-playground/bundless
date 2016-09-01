@@ -62,11 +62,15 @@ export function parseUrl(url: string, baseUrl: string, libMount: string): Parsed
     const ext: string = getExt(url);
     const urlPath: string = url.slice(baseUrl.length); 
     const segments = urlPath.split('/');
-    if(segments[0] === libMount) {
+    const libSegments = libMount.split('/');
+    const startIndex = libSegments.every((segment, index) => segment === segments[index])
+        ? libSegments.length
+        : -1;
+    if(startIndex > -1) {
         const pkgIndex = segments
             .reduce((acc: number, it: string, index: number, list: string[]) => {
-                return (index > 1 && list[index-1] === 'node_modules') ? index : acc;
-            }, 1);
+                return (index > startIndex && list[index-1] === 'node_modules') ? index : acc;
+            }, startIndex);
         return {
             pkg: segments[pkgIndex],
             pkgPath: segments.slice(0,pkgIndex+1).join('/'),
@@ -139,7 +143,7 @@ export function postProcess(projectMap: ProjectMap, baseUrl: string, resolvedNam
     if(isDefaultIndexDir(projectMap, '/' + filePath)) {
         return joinUrl(baseUrl, stripJsExt(filePath), 'index.js');
     } else {
-        const url: ParsedUrl = parseUrl(resolvedName, baseUrl, 'lib');
+        const url: ParsedUrl = parseUrl(resolvedName, baseUrl, projectMap.libMount);
         const remappedFile: string = applyFileRemapping(projectMap, url);
         return joinUrl(baseUrl, remappedFile);
     }

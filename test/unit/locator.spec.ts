@@ -13,6 +13,7 @@ describe('locate', function () {
 
     before(function () {
         projectMap = {
+            libMount,
             packages: {},
             dirs: []
         };
@@ -139,11 +140,21 @@ describe('locate', function () {
                 ext: '.js'
             });
         });
+
+        it('Deals with complex libMount', function () {
+            expect(parseUrl(`${baseUrl}a/b/c/d.js`, baseUrl, 'a/b')).to.eql({
+                pkg: 'c',
+                pkgPath: 'a/b/c',
+                localPath: 'd.js',
+                ext: '.js'
+            });
+        });
     });
     
     describe('applyFileRemapping()', function () {
         it('xxx', function () {
             const projectMap: ProjectMap = {
+                libMount,
                 packages: {
                     pkgX: { p: '/lib/pkgX', m: 'x.js', r: { './funky.js': './monkey.js' } }
                 },
