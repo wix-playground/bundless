@@ -18,21 +18,13 @@ function normalizeTail(name: string, ignorePattern:RegExp): string {
     }
 }
 
-function resolveAsPackage(projectMap: ProjectMap, filePath: string, noJSExtension?:RegExp): string {
-    const segments = filePath.split('/').filter(ch => !!ch);
-    const pkgName = segments[0];
-    if(pkgName in projectMap.packages) {
-        const { p: moduleSource, m: modulePath} = projectMap.packages[pkgName];
-        if(modulePath) {
-            const tail = segments.length === 1
-                ? modulePath
-                : segments.slice(1).join('/');
-            return moduleSource + '/' + normalizeTail(tail, noJSExtension);
-        } else {
-            return moduleSource;
-        }
+function resolveAsPackage(projectMap: ProjectMap, parsedSource: ParsedSource, noJSExtension?:RegExp): string {
+    if(parsedSource.pkg in projectMap.packages) {
+        const { p: moduleSource, m: modulePath } = projectMap.packages[parsedSource.pkg];
+        const tail = parsedSource.localPath || modulePath;
+        return moduleSource + '/' + normalizeTail(tail, noJSExtension);
     } else {
-        return normalizeTail(filePath, noJSExtension);
+        return null;
     }
 }
 
@@ -56,6 +48,29 @@ export interface ParsedUrl {
     pkgPath: string;
     localPath: string;
     ext: string;
+}
+
+export interface ParsedSource {
+    pkg: string;
+    localPath: string;
+    ext: string;
+}
+
+export function parseSource(source: string): ParsedSource {
+    const segments = source.split('/');
+    if(segments[0] === '.' || segments[0] === '..') {
+        return {
+            pkg: '',
+            localPath: source,
+            ext: getExt(source)
+        }
+    } else {
+        return {
+            pkg: segments[0],
+            localPath: segments.slice(1).join('/'),
+            ext: getExt(source)
+        }
+    }
 }
 
 export function parseUrl(url: string, baseUrl: string, libMount: string): ParsedUrl {
@@ -103,18 +118,11 @@ export function joinUrl(baseUrl: string, ...paths: string[]): string {
 }
 
 export function preProcess(projectMap: ProjectMap, name: string, parentName?: string, parentAddress?: string, noJSExtension?:RegExp): string {
-    const packageRec = projectMap.packages[name];
-    const segments = name.split('/');
-    const packageName = segments[0];
-    if(packageName === '.' || packageName === '..') {
-        if(segments.length === 1) {
-            return name;
-        } else {
-            const tail = segments.slice(1).join('/');
-            return segments[0] + '/' + normalizeTail(tail, noJSExtension);
-        }
+    const parsedSource: ParsedSource = parseSource(name);
+    if(!parsedSource.pkg) {
+        return normalizeTail(name, noJSExtension);
     } else {
-        const pkgMainFilePath = resolveAsPackage(projectMap, name, noJSExtension);
+        const pkgMainFilePath = resolveAsPackage(projectMap, parsedSource, noJSExtension);
         if(pkgMainFilePath) {
             return pkgMainFilePath;
         } else {
