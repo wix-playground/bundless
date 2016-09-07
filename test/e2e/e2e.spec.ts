@@ -25,7 +25,7 @@ describe('Bundless', function () {
                 const project: PackageBuilder = setupProject(topology.srcDir);
                 topology.rootDir = project.getPath();
                 return Promise.resolve()
-                    .then(() => startStaticServer(host, port, basePath, topology, { debug: true }))
+                    .then(() => startStaticServer(host, port, basePath, topology))
                     .then(result => staticServer = result)
                     .then(() => startKarmaServer(host, port, basePath, mainModule))
                     .then(passed => expect(passed).to.equal(true, 'Expected all tests to pass'))
@@ -33,7 +33,7 @@ describe('Bundless', function () {
             }
 
 
-            it.only('using default topology', function () {
+            it('using default topology', function () {
                 return runTest(defTopology);
             });
 

@@ -7,9 +7,8 @@ export function startKarmaServer(host: string, port: number, basePath: string, m
             port: 9876,
             configFile: process.cwd() + '/karma.conf.js',
             singleRun: true,
+            browserNoActivityTimeout: 100000,
             client: {
-                host,
-                port,
                 baseURL: `http://${host}:${port}${basePath}`,
                 mainModule
             }
