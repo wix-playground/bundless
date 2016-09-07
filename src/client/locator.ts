@@ -117,14 +117,14 @@ export function joinUrl(baseUrl: string, ...paths: string[]): string {
     return result;
 }
 
-export function preProcess(projectMap: ProjectMap, name: string, parentName?: string, parentAddress?: string, noJSExtension?:RegExp): string {
+export function preProcess(projectMap: ProjectMap, baseUrl, name: string, parentName?: string, parentAddress?: string, noJSExtension?:RegExp): string {
     const parsedSource: ParsedSource = parseSource(name);
     if(!parsedSource.pkg) {
         return normalizeTail(name, noJSExtension);
     } else {
         const pkgMainFilePath = resolveAsPackage(projectMap, parsedSource, noJSExtension);
         if(pkgMainFilePath) {
-            return pkgMainFilePath;
+            return joinUrl(baseUrl, pkgMainFilePath);
         } else {
             return normalizeTail(name, noJSExtension);
         }

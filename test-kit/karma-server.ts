@@ -1,7 +1,7 @@
 import * as karma from 'karma';
 import Promise = require("bluebird");
 
-export function startKarmaServer(host: string, port: number, mainModule: string): Promise<boolean> {
+export function startKarmaServer(host: string, port: number, basePath: string, mainModule: string): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
         const karmaServer = new karma.Server({
             port: 9876,
@@ -10,14 +10,18 @@ export function startKarmaServer(host: string, port: number, mainModule: string)
             client: {
                 host,
                 port,
-                baseURL: `http://${host}:${port}`,
+                baseURL: `http://${host}:${port}${basePath}`,
                 mainModule
             }
         }, exitCode => {
             console.log(`Karma server finished with exit code ${exitCode}`);
         });
         karmaServer.on('run_complete', (browsers, result) => {
-            resolve(!result.error)
+            if(result.exitCode === 0) {
+                resolve(!result.error);
+            } else {
+                reject(`Karma exited with code ${result.exitCode}`);
+            }
         });
         karmaServer.start();
     });

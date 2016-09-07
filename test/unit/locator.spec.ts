@@ -17,7 +17,7 @@ describe('locate', function () {
             packages: {},
             dirs: []
         };
-        preProcess = locator.preProcess.bind(null, projectMap);
+        preProcess = locator.preProcess.bind(null, projectMap, baseUrl);
         postProcess = locator.postProcess.bind(null, projectMap, baseUrl);
     });
 
@@ -33,16 +33,16 @@ describe('locate', function () {
 
         it('appends automagically .js extension', function () {
             expect(preProcess('./a')).to.equal('./a.js');
-            expect(preProcess('pkgX/data.json')).to.equal('/lib/pkgX/data.json')
-            expect(preProcess('src/client/editor/editor.skin.html')).to.equal('src/client/editor/editor.skin.html.js')
+            expect(preProcess('pkgX/data.json')).to.equal(`${baseUrl}lib/pkgX/data.json`);
+            expect(preProcess('src/client/editor/editor.skin.html')).to.equal('src/client/editor/editor.skin.html.js');
         });
 
         it('finds package main file', function () {
-            expect(preProcess('pkgX')).to.equal('/lib/pkgX/x.js');
+            expect(preProcess('pkgX')).to.equal(`${baseUrl}lib/pkgX/x.js`);
         });
 
         it('finds sub module in a package', function () {
-            expect(preProcess('pkgX/sub')).to.equal('/lib/pkgX/sub.js')
+            expect(preProcess('pkgX/sub')).to.equal(`${baseUrl}lib/pkgX/sub.js`)
         });
 
         it('deals with relative paths', function () {
@@ -55,7 +55,7 @@ describe('locate', function () {
 
 
         it('finds node package', function () {
-            expect(preProcess('zlib')).to.equal('/$node/browserify-zlib/src/index.js');
+            expect(preProcess('zlib')).to.equal(`${baseUrl}$node/browserify-zlib/src/index.js`);
         });
     });
 

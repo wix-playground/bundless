@@ -29,7 +29,6 @@ function finish(result, errors) {
 }
 
 
-
 const config = karma.config;
 const hostname = 'http://' + config.host + ':' + config.port.toString();
 karma.info({ total: 1 });
