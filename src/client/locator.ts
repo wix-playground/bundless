@@ -18,29 +18,30 @@ function normalizeTail(name: string, ignorePattern:RegExp): string {
     }
 }
 
-function remapFile(source: ParsedSource, rec: PackageRec) {
+function remapFile(source: ParsedSource, rec: PackageRec): ParsedSource {
     const remapObj = rec.r;
     if(remapObj) {
-
+        const localPath = './' + source.localPath;
         if(source.pkg in remapObj) {
             return parseSource(remapObj[source.pkg]);
+        } else if(localPath in remapObj) {
+            return parseSource(remapObj[localPath]);
+        } else if(stripJsExt(localPath) in remapObj) {
+            return parseSource(remapObj[stripJsExt(localPath)]);
         }
     }
+    return null;
 }
 
 function resolveAsPackage(projectMap: ProjectMap, baseUrl: string, parsedSource: ParsedSource, parsedParent: ParsedUrl, noJSExtension?:RegExp): string {
 
     function resolvePackageName(parsedSource: ParsedSource, parsedParent: ParsedSource): ParsedSource {
-        if(parsedParent && parsedParent.pkg && parsedParent.pkg in projectMap.packages) {
-            return remapFile(parsedSource, projectMap.packages[parsedParent.pkg]);
-            /*const { r: remapObj } = projectMap.packages[parsedParent.pkg];
-            if(remapObj) {
-                if(parsedSource.pkg in remapObj) {
-                    return parseSource(remapObj[parsedSource.pkg]);
-                }
-            }*/
+        const parentPkg = parsedParent && projectMap.packages[parsedParent.pkg];
+        if(parentPkg) {
+            return remapFile(parsedSource, parentPkg) || parsedSource;
+        } else {
+            return parsedSource;
         }
-        return parsedSource;
     }
 
     const source: ParsedSource = resolvePackageName(parsedSource, parsedParent);
@@ -75,18 +76,17 @@ function stripJsExt(pathName: string): string {
     }
 }
 
-export interface ParsedUrl {
-    pkg: string;
-    pkgPath: string;
-    localPath: string;
-    ext: string;
-}
 
 export interface ParsedSource {
     pkg: string;
     localPath: string;
     ext: string;
 }
+
+export interface ParsedUrl extends ParsedSource {
+    pkgPath: string;
+}
+
 
 export function parseSource(source: string): ParsedSource {
     const segments = source.split('/');
@@ -166,14 +166,14 @@ export function preProcess(projectMap: ProjectMap, baseUrl, name: string, parent
 
 export function applyFileRemapping(projectMap: ProjectMap, url: ParsedUrl): string {
     const origPath = joinUrl(url.pkgPath, url.localPath);
-    const localFile = './' + url.localPath;
     if(url.pkg && url.pkg in projectMap.packages) {
         const pkgRec = projectMap.packages[url.pkg];
         if(url.localPath === '') {
             return joinUrl(url.pkgPath, pkgRec.m);
         }
-        if(pkgRec.r && localFile in pkgRec.r) {
-            return joinUrl(url.pkgPath, pkgRec.r[localFile].slice(2));
+        const remappedSource: ParsedSource = remapFile(url, pkgRec);
+        if(remappedSource) {
+            return joinUrl(url.pkgPath, remappedSource.localPath.slice(2));
         }
     }
     return origPath;
@@ -185,7 +185,7 @@ export function postProcess(projectMap: ProjectMap, baseUrl: string, resolvedNam
         return joinUrl(baseUrl, stripJsExt(filePath), 'index.js');
     } else {
         const url: ParsedUrl = parseUrl(resolvedName, baseUrl, projectMap.libMount);
-        const remappedFile: string = applyFileRemapping(projectMap, url);
+        const remappedFile: string = normalizeTail(applyFileRemapping(projectMap, url), noJSExtension);
         return joinUrl(baseUrl, remappedFile);
     }
 }
