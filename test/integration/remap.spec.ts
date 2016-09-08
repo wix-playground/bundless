@@ -1,7 +1,7 @@
 import projectDriver from '../../test-kit/project-driver';
 import tmp = require('tmp');
 import {SynchrounousResult} from "tmp";
-import {expect} from "chai";
+import {expect, use} from "chai";
 import {PackageBuilder} from "../../test-kit/project-driver";
 import {hookSystemJs} from '../../src/api';
 import {getProjectMap} from "../../src/project-mapper";
@@ -11,7 +11,7 @@ import _ = require('lodash');
 const SystemJS = (typeof System === 'undefined') ? require('systemjs/dist/system.src') : System;
 const SysConstructor = <any>SystemJS.constructor;
 
-require('source-map-support').install();
+use(require('chai-as-promised'));
 
 // These test cases taken from:
 // https://github.com/substack/node-browserify/tree/master/test/browser_field_resolve
@@ -112,7 +112,6 @@ describe('file remapping', function () {
 
     it('f', function () {
         const baseUrl = 'https://localhost:3000/';
-        const tempDir: SynchrounousResult = tmp.dirSync();
         project
             .addToPackageJson({
                 browser: {
@@ -137,7 +136,7 @@ describe('file remapping', function () {
             .addPackage('aaa')
             .addMainFile('main.js');
         const normalize = setup();
-        return expect(normalize('./x')).to.throw();
+        return expect(normalize('./x')).to.be.rejected;
     });
 
     it('h', function () {
@@ -151,7 +150,7 @@ describe('file remapping', function () {
             .addPackage('aaa')
             .addMainFile('main.js');
         const normalize = setup();
-        return expect(normalize('./x.js')).to.throw();
+        return expect(normalize('./x.js')).to.be.rejected;
     });
 
     it('i', function () {

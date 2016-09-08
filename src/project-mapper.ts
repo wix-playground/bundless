@@ -138,7 +138,7 @@ function collectIndexDirs(root: DirInfo, prefix: string): string[] {
 
 // These properties have short names because we're trying to make the project map as small as possible
 
-export type FileRemapping = { [fileName: string]: string };
+export type FileRemapping = { [fileName: string]: (string | boolean) };
 
 export type PackageRec = {
     p: string;  // package path

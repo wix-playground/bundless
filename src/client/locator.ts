@@ -20,15 +20,30 @@ function normalizeTail(name: string, ignorePattern:RegExp): string {
 
 function remapFile(source: ParsedSource, rec: PackageRec): ParsedSource {
     const remapObj = rec.r;
+
+    function tryKey(key: string): ParsedSource {
+        if(key in remapObj) {
+            const value = remapObj[key];
+            if(typeof value === 'boolean') {
+                if(value === false) {
+                    throw new Error(`Target ${key} explicitly forbidden in package.json`);
+                }
+            } else {
+                return parseSource(value);
+            }
+        } else {
+            return null;
+        }
+
+    }
+
     if(remapObj) {
         const localPath = './' + source.localPath;
-        if(source.pkg in remapObj) {
-            return parseSource(remapObj[source.pkg]);
-        } else if(localPath in remapObj) {
-            return parseSource(remapObj[localPath]);
-        } else if(stripJsExt(localPath) in remapObj) {
-            return parseSource(remapObj[stripJsExt(localPath)]);
-        }
+
+        return tryKey(source.pkg) ||
+            tryKey(source.pkg + '/' + stripJsExt(source.localPath)) ||
+            tryKey(localPath) ||
+            tryKey(stripJsExt(localPath));
     }
     return null;
 }
