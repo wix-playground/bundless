@@ -11,6 +11,8 @@ import _ = require('lodash');
 const SystemJS = (typeof System === 'undefined') ? require('systemjs/dist/system.src') : System;
 const SysConstructor = <any>SystemJS.constructor;
 
+require('source-map-support').install();
+
 // These test cases taken from:
 // https://github.com/substack/node-browserify/tree/master/test/browser_field_resolve
 
@@ -49,7 +51,7 @@ describe('file remapping', function () {
             .addPackage('aaa')
                 .addMainFile('main.js');
         const normalize = setup();
-        return normalize('zzz').then(result => expect(result).to.equal(`${baseUrl}${libMount}/aaa/main.js`));
+        return normalize('zzz').then(result => expect(result).to.equal(`${baseUrl}${libMount}/a/node_modules/aaa/main.js`));
     });
 
     it('b', function () {
@@ -111,7 +113,7 @@ describe('file remapping', function () {
     it('f', function () {
         const baseUrl = 'https://localhost:3000/';
         const tempDir: SynchrounousResult = tmp.dirSync();
-        const project = projectDriver(tempDir.name)
+        project
             .addToPackageJson({
                 browser: {
                     "aaa/what": "./x.js"

@@ -1,4 +1,4 @@
-import {ProjectMap} from "./../project-mapper";
+import {ProjectMap, PackageRec} from "./../project-mapper";
 
 function getExt(fileName: string): string {
     const slashIndex = fileName.lastIndexOf('/');
@@ -18,14 +18,46 @@ function normalizeTail(name: string, ignorePattern:RegExp): string {
     }
 }
 
-function resolveAsPackage(projectMap: ProjectMap, parsedSource: ParsedSource, noJSExtension?:RegExp): string {
-    if(parsedSource.pkg in projectMap.packages) {
-        const { p: moduleSource, m: modulePath } = projectMap.packages[parsedSource.pkg];
-        const tail = parsedSource.localPath || modulePath;
-        return moduleSource + '/' + normalizeTail(tail, noJSExtension);
-    } else {
-        return null;
+function remapFile(source: ParsedSource, rec: PackageRec) {
+    const remapObj = rec.r;
+    if(remapObj) {
+
+        if(source.pkg in remapObj) {
+            return parseSource(remapObj[source.pkg]);
+        }
     }
+}
+
+function resolveAsPackage(projectMap: ProjectMap, baseUrl: string, parsedSource: ParsedSource, parsedParent: ParsedUrl, noJSExtension?:RegExp): string {
+
+    function resolvePackageName(parsedSource: ParsedSource, parsedParent: ParsedSource): ParsedSource {
+        if(parsedParent && parsedParent.pkg && parsedParent.pkg in projectMap.packages) {
+            return remapFile(parsedSource, projectMap.packages[parsedParent.pkg]);
+            /*const { r: remapObj } = projectMap.packages[parsedParent.pkg];
+            if(remapObj) {
+                if(parsedSource.pkg in remapObj) {
+                    return parseSource(remapObj[parsedSource.pkg]);
+                }
+            }*/
+        }
+        return parsedSource;
+    }
+
+    const source: ParsedSource = resolvePackageName(parsedSource, parsedParent);
+
+    if(source.pkg) {
+        if(source.pkg in projectMap.packages) {
+            const { p: moduleSource, m: modulePath } = projectMap.packages[source.pkg];
+            const tail = parsedSource.localPath || modulePath;
+            return joinUrl(baseUrl, moduleSource + '/' + normalizeTail(tail, noJSExtension));
+        } else {
+            return null;
+        }
+    } else {
+        return source.localPath;
+    }
+
+
 }
 
 function isDefaultIndexDir(projectMap: ProjectMap, filePath: string): boolean {
@@ -122,9 +154,10 @@ export function preProcess(projectMap: ProjectMap, baseUrl, name: string, parent
     if(!parsedSource.pkg) {
         return normalizeTail(name, noJSExtension);
     } else {
-        const pkgMainFilePath = resolveAsPackage(projectMap, parsedSource, noJSExtension);
+        const parsedParent: ParsedUrl = parentName ? parseUrl(parentName, baseUrl, projectMap.libMount) : null;
+        const pkgMainFilePath = resolveAsPackage(projectMap, baseUrl, parsedSource, parsedParent, noJSExtension);
         if(pkgMainFilePath) {
-            return joinUrl(baseUrl, pkgMainFilePath);
+            return normalizeTail(pkgMainFilePath, noJSExtension);
         } else {
             return normalizeTail(name, noJSExtension);
         }
