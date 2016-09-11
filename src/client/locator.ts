@@ -155,7 +155,9 @@ export function joinUrl(baseUrl: string, ...paths: string[]): string {
         if(result.charAt(result.length-1) !== '/') {
             result += '/';
         }
-        if(path.charAt(0) === '/') {
+        if(path.slice(0,2) === './') {
+            result += path.slice(2);
+        } else if(path.charAt(0) === '/') {
             result += path.slice(1);
         } else {
             result += path;

@@ -96,7 +96,9 @@ describe('locate', function () {
             expect(joinUrl('https://localhost:3000', 'a', 'b.js')).to.equal(expectedResult);
             expect(joinUrl('https://localhost:3000/', '/a', 'b.js')).to.equal(expectedResult);
             expect(joinUrl('https://localhost:3000', '/a/', '/b.js')).to.equal(expectedResult);
+            expect(joinUrl('https://localhost:3000', 'a', './b.js')).to.equal(expectedResult);
         });
+
     });
 
     describe('parseUrl()', function () {
@@ -152,7 +154,7 @@ describe('locate', function () {
     });
     
     describe('applyFileRemapping()', function () {
-        it('xxx', function () {
+        it('applies file remapping', function () {
             const projectMap: ProjectMap = {
                 libMount,
                 packages: {
@@ -167,6 +169,57 @@ describe('locate', function () {
                 ext: '.js'
             };
             expect(applyFileRemapping(projectMap, url)).to.eql('pkgX/monkey.js');    
+        });
+
+        it('detects correctly the main file (1)', function () {
+            const projectMap: ProjectMap = {
+                libMount,
+                packages: {
+                    pkgX: { p: '/lib/pkgX', m: 'x.js', r: { './funky.js': './monkey.js' } }
+                },
+                dirs: []
+            };
+            const url: ParsedUrl = {
+                pkg: 'pkgX',
+                pkgPath: 'pkgX',
+                localPath: '',
+                ext: '.js'
+            };
+            expect(applyFileRemapping(projectMap, url)).to.eql('pkgX/x.js');
+        });
+
+        it('detects correctly the main file (dot in front of the main file path)', function () {
+            const projectMap: ProjectMap = {
+                libMount,
+                packages: {
+                    pkgX: { p: '/lib/pkgX', m: './x.js', r: { './funky.js': './monkey.js' } }
+                },
+                dirs: []
+            };
+            const url: ParsedUrl = {
+                pkg: 'pkgX',
+                pkgPath: 'pkgX',
+                localPath: '',
+                ext: '.js'
+            };
+            expect(applyFileRemapping(projectMap, url)).to.eql('pkgX/x.js');
+        });
+
+        it('detects correctly the main file (main file path a result of remapping)', function () {
+            const projectMap: ProjectMap = {
+                libMount,
+                packages: {
+                    pkgX: { p: '/lib/pkgX', m: './main.js', r: { './main.js': './x.js' } }
+                },
+                dirs: []
+            };
+            const url: ParsedUrl = {
+                pkg: 'pkgX',
+                pkgPath: 'pkgX',
+                localPath: '',
+                ext: '.js'
+            };
+            expect(applyFileRemapping(projectMap, url)).to.eql('pkgX/x.js');
         });
         
     });
