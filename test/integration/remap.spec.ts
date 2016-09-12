@@ -214,19 +214,6 @@ describe('file remapping', function () {
     it('extra a', function () {
         project
             .addPackage('aaa')
-                .addMainFile('main.js')
-                .addToPackageJson({
-                    browser: {
-                        'main.js': 'x.js'
-                    }
-                });
-        const normalize = setup();
-        return normalize('aaa').then(result => expect(result).to.equal(`${baseUrl}${libMount}/a/node_modules/aaa/x.js`));
-    });
-
-    it('extra b', function () {
-        project
-            .addPackage('aaa')
             .addMainFile('main.js')
             .addToPackageJson({
                 browser: {
@@ -237,19 +224,7 @@ describe('file remapping', function () {
         return normalize('aaa').then(result => expect(result).to.equal(`${baseUrl}${libMount}/a/node_modules/aaa/x.js`));
     });
 
-    it('extra c', function () {
-        project
-            .addPackage('aaa')
-                .addToPackageJson({
-                    browser: {
-                        'index.js': 'x.js'
-                    }
-                });
-        const normalize = setup();
-        return normalize('aaa').then(result => expect(result).to.equal(`${baseUrl}${libMount}/a/node_modules/aaa/x.js`));
-    });
-
-    it('extra d', function () {
+    it('extra b', function () {
         project
             .addPackage('aaa')
             .addToPackageJson({

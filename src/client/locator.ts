@@ -38,7 +38,7 @@ function remapFile(source: ParsedSource, rec: PackageRec): ParsedSource {
     }
 
     if(remapObj) {
-        const localPath = './' + source.localPath;
+        const localPath = source.localPath.slice(0, 2) === './' ? source.localPath : './' + source.localPath;
 
         return tryKey(source.pkg) ||
             tryKey(source.pkg + '/' + stripJsExt(source.localPath)) ||
@@ -167,16 +167,17 @@ export function joinUrl(baseUrl: string, ...paths: string[]): string {
 }
 
 export function preProcess(projectMap: ProjectMap, baseUrl, name: string, parentName?: string, parentAddress?: string, noJSExtension?:RegExp): string {
-    const parsedSource: ParsedSource = parseSource(name);
+    const normalizedNamed = name.replace(/\/+/g, '/');
+    const parsedSource: ParsedSource = parseSource(normalizedNamed);
     if(!parsedSource.pkg) {
-        return normalizeTail(name, noJSExtension);
+        return normalizeTail(normalizedNamed, noJSExtension);
     } else {
         const parsedParent: ParsedUrl = parentName ? parseUrl(parentName, baseUrl, projectMap.libMount) : null;
         const pkgMainFilePath = resolveAsPackage(projectMap, baseUrl, parsedSource, parsedParent, noJSExtension);
         if(pkgMainFilePath) {
             return normalizeTail(pkgMainFilePath, noJSExtension);
         } else {
-            return normalizeTail(name, noJSExtension);
+            return normalizeTail(normalizedNamed, noJSExtension);
         }
     }
 }
@@ -186,14 +187,27 @@ export function applyFileRemapping(projectMap: ProjectMap, url: ParsedUrl): stri
     if(url.pkg && url.pkg in projectMap.packages) {
         const pkgRec = projectMap.packages[url.pkg];
         if(url.localPath === '') {
-            return joinUrl(url.pkgPath, pkgRec.m);
+            const remappedMainFile = remapFile({
+                pkg: '',
+                localPath: pkgRec.m,
+                ext: getExt(url.localPath)
+            }, pkgRec);
+            if(remappedMainFile) {
+                return joinUrl(url.pkgPath, remappedMainFile.localPath);
+            } else {
+                return joinUrl(url.pkgPath, pkgRec.m);
+            }
+        } else {
+            const remappedSource: ParsedSource = remapFile(url, pkgRec);
+            if(remappedSource) {
+                return joinUrl(url.pkgPath, remappedSource.localPath.slice(2));
+            } else {
+                return origPath;
+            }
         }
-        const remappedSource: ParsedSource = remapFile(url, pkgRec);
-        if(remappedSource) {
-            return joinUrl(url.pkgPath, remappedSource.localPath.slice(2));
-        }
+    } else {
+        return origPath;
     }
-    return origPath;
 }
 
 export function postProcess(projectMap: ProjectMap, baseUrl: string, resolvedName: string, noJSExtension?:RegExp): string {

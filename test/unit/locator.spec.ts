@@ -37,6 +37,10 @@ describe('locate', function () {
             expect(preProcess('src/client/editor/editor.skin.html')).to.equal('src/client/editor/editor.skin.html.js');
         });
 
+        it('reduces superfluous slashes', function () {
+            expect(preProcess('..//a')).to.equal('../a.js');
+        });
+
         it('finds package main file', function () {
             expect(preProcess('pkgX')).to.equal(`${baseUrl}lib/pkgX/x.js`);
         });
