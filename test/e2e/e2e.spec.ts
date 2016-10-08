@@ -7,9 +7,9 @@ import * as http from "http";
 import {startKarmaServer} from "../../test-kit/karma-server";
 import {expect} from "chai";
 import {defTopology} from "../../src/defaults";
+import {findPort} from "../../test-kit/port";
 
 const host = 'localhost';
-const port = 3000;
 
 describe('Bundless', function () {
     this.timeout(30000);
@@ -24,12 +24,15 @@ describe('Bundless', function () {
                 const mainModule = topology.srcMount === '/' ? 'main.js' : `${topology.srcMount.slice(1)}/main.js`;
                 const project: PackageBuilder = setupProject(topology.srcDir);
                 topology.rootDir = project.getPath();
-                return Promise.resolve()
-                    .then(() => startStaticServer(host, port, basePath, topology))
-                    .then(result => staticServer = result)
-                    .then(() => startKarmaServer(host, port, basePath, mainModule))
-                    .then(passed => expect(passed).to.equal(true, 'Expected all tests to pass'))
-                    .then(() => project.dispose());
+                return findPort(3000)
+                    .then(port => {
+                        return Promise.resolve()
+                            .then(() => startStaticServer(host, port, basePath, topology))
+                            .then(result => staticServer = result)
+                            .then(() => startKarmaServer(host, port, basePath, mainModule))
+                            .then(passed => expect(passed).to.equal(true, 'Expected all tests to pass'))
+                            .then(() => project.dispose());
+                    });
             }
 
 
