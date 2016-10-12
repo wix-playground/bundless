@@ -149,6 +149,16 @@ export function parseUrl(url: string, baseUrl: string, libMount: string): Parsed
     }
 }
 
+function fixDuplicateSlases(name: string): string {
+    return name.replace(/\/+/g, (found: string, index: number, str: string) => {
+        if(index === 5 && str.slice(0, index) === 'http:') {
+            return found;
+        } else {
+            return '/';
+        }
+    });
+}
+
 export function joinUrl(baseUrl: string, ...paths: string[]): string {
     let result = baseUrl;
     paths.forEach(path => {
@@ -167,7 +177,7 @@ export function joinUrl(baseUrl: string, ...paths: string[]): string {
 }
 
 export function preProcess(projectMap: ProjectMap, baseUrl, name: string, parentName?: string, parentAddress?: string, noJSExtension?:RegExp): string {
-    const normalizedNamed = name.replace(/\/+/g, '/');
+    const normalizedNamed = fixDuplicateSlases(name);
     const parsedSource: ParsedSource = parseSource(normalizedNamed);
     if(!parsedSource.pkg) {
         return normalizeTail(normalizedNamed, noJSExtension);

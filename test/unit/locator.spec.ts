@@ -39,6 +39,7 @@ describe('locate', function () {
 
         it('reduces superfluous slashes', function () {
             expect(preProcess('..//a')).to.equal('../a.js');
+            expect(preProcess('http://host:8080/foo//bar')).to.equal('http://host:8080/foo/bar.js');
         });
 
         it('finds package main file', function () {
