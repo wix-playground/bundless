@@ -1,4 +1,4 @@
-import {ProjectMap} from "./../project-mapper";
+import {ProjectMap, PackageRec} from "./../project-mapper";
 
 function getExt(fileName: string): string {
     const slashIndex = fileName.lastIndexOf('/');
@@ -18,22 +18,62 @@ function normalizeTail(name: string, ignorePattern:RegExp): string {
     }
 }
 
-function resolveAsPackage(projectMap: ProjectMap, filePath: string, noJSExtension?:RegExp): string {
-    const segments = filePath.split('/').filter(ch => !!ch);
-    const pkgName = segments[0];
-    if(pkgName in projectMap.packages) {
-        const { p: moduleSource, m: modulePath} = projectMap.packages[pkgName];
-        if(modulePath) {
-            const tail = segments.length === 1
-                ? modulePath
-                : segments.slice(1).join('/');
-            return moduleSource + '/' + normalizeTail(tail, noJSExtension);
+function remapFile(source: ParsedSource, rec: PackageRec): ParsedSource {
+    const remapObj = rec.r;
+
+    function tryKey(key: string): ParsedSource {
+        if(key in remapObj) {
+            const value = remapObj[key];
+            if(typeof value === 'boolean') {
+                if(value === false) {
+                    throw new Error(`Target ${key} explicitly forbidden in package.json`);
+                }
+            } else {
+                return parseSource(value);
+            }
         } else {
-            return moduleSource;
+            return null;
+        }
+
+    }
+
+    if(remapObj) {
+        const localPath = source.localPath.slice(0, 2) === './' ? source.localPath : './' + source.localPath;
+
+        return tryKey(source.pkg) ||
+            tryKey(source.pkg + '/' + stripJsExt(source.localPath)) ||
+            tryKey(localPath) ||
+            tryKey(stripJsExt(localPath));
+    }
+    return null;
+}
+
+function resolveAsPackage(projectMap: ProjectMap, baseUrl: string, parsedSource: ParsedSource, parsedParent: ParsedUrl, noJSExtension?:RegExp): string {
+
+    function resolvePackageName(parsedSource: ParsedSource, parsedParent: ParsedSource): ParsedSource {
+        const parentPkg = parsedParent && projectMap.packages[parsedParent.pkg];
+        if(parentPkg) {
+            return remapFile(parsedSource, parentPkg) || parsedSource;
+        } else {
+            return parsedSource;
+        }
+    }
+
+    const source: ParsedSource = resolvePackageName(parsedSource, parsedParent);
+
+    if(source.pkg) {
+        if(source.pkg in projectMap.packages) {
+            const { p: moduleSource, m: modulePath } = projectMap.packages[source.pkg];
+            const tail = parsedSource.localPath || modulePath;
+            return joinUrl(baseUrl, moduleSource + '/' + normalizeTail(tail, noJSExtension));
+        } else {
+            return null;
         }
     } else {
-        return normalizeTail(filePath, noJSExtension);
+        return source.localPath;
     }
+
+
 }
 
 function isDefaultIndexDir(projectMap: ProjectMap, filePath: string): boolean {
@@ -51,21 +91,72 @@ function stripJsExt(pathName: string): string {
     }
 }
 
-export function extractPackageNames(baseUrl: string, libMount: string, filePath: string): string[] {
-    const segments = filePath.slice(baseUrl.length).split('/');
-    if(segments[0] === libMount) {
-        return segments
-            .slice(1)
-            .reduce((acc: string[], segment: string, index: number, list: string[]) => {
-                if(index === 0 || list[index-1] === 'node_modules') {
-                    return acc.concat(segment);
-                } else {
-                    return acc;
-                }
-            }, []);
+
+export interface ParsedSource {
+    pkg: string;
+    localPath: string;
+    ext: string;
+}
+
+export interface ParsedUrl extends ParsedSource {
+    pkgPath: string;
+}
+
+
+export function parseSource(source: string): ParsedSource {
+    const segments = source.split('/');
+    if(segments[0] === '.' || segments[0] === '..') {
+        return {
+            pkg: '',
+            localPath: source,
+            ext: getExt(source)
+        }
     } else {
-        return [];
+        return {
+            pkg: segments[0],
+            localPath: segments.slice(1).join('/'),
+            ext: getExt(source)
+        }
     }
+}
+
+export function parseUrl(url: string, baseUrl: string, libMount: string): ParsedUrl {
+    const ext: string = getExt(url);
+    const urlPath: string = url.slice(baseUrl.length); 
+    const segments = urlPath.split('/');
+    const libSegments = libMount.split('/');
+    const startIndex = libSegments.every((segment, index) => segment === segments[index])
+        ? libSegments.length
+        : -1;
+    if(startIndex > -1) {
+        const pkgIndex = segments
+            .reduce((acc: number, it: string, index: number, list: string[]) => {
+                return (index > startIndex && list[index-1] === 'node_modules') ? index : acc;
+            }, startIndex);
+        return {
+            pkg: segments[pkgIndex],
+            pkgPath: segments.slice(0,pkgIndex+1).join('/'),
+            localPath: segments.slice(pkgIndex+1).join('/'),
+            ext
+        }
+    } else {
+        return {
+            pkg: '',
+            pkgPath: '',
+            localPath: urlPath,
+            ext
+        };
+    }
+}
+
+function fixDuplicateSlases(name: string): string {
+    return name.replace(/\/+/g, (found: string, index: number, str: string) => {
+        if(index === 5 && str.slice(0, index) === 'http:') {
+            return found;
+        } else {
+            return '/';
+        }
+    });
 }
 
 export function joinUrl(baseUrl: string, ...paths: string[]): string {
@@ -74,7 +165,9 @@ export function joinUrl(baseUrl: string, ...paths: string[]): string {
         if(result.charAt(result.length-1) !== '/') {
             result += '/';
         }
-        if(path.charAt(0) === '/') {
+        if(path.slice(0,2) === './') {
+            result += path.slice(2);
+        } else if(path.charAt(0) === '/') {
             result += path.slice(1);
         } else {
             result += path;
@@ -83,42 +176,57 @@ export function joinUrl(baseUrl: string, ...paths: string[]): string {
     return result;
 }
 
-export function preProcess(projectMap: ProjectMap, name: string, parentName?: string, parentAddress?: string, noJSExtension?:RegExp): string {
-    const packageRec = projectMap.packages[name];
-    const segments = name.split('/');
-    const packageName = segments[0];
-    if(packageName === '.' || packageName === '..') {
-        if(segments.length === 1) {
-            return name;
-        } else {
-            const tail = segments.slice(1).join('/');
-            return segments[0] + '/' + normalizeTail(tail, noJSExtension);
-        }
+export function preProcess(projectMap: ProjectMap, baseUrl, name: string, parentName?: string, parentAddress?: string, noJSExtension?:RegExp): string {
+    const normalizedNamed = fixDuplicateSlases(name);
+    const parsedSource: ParsedSource = parseSource(normalizedNamed);
+    if(!parsedSource.pkg) {
+        return normalizeTail(normalizedNamed, noJSExtension);
     } else {
-        const pkgMainFilePath = resolveAsPackage(projectMap, name, noJSExtension);
+        const parsedParent: ParsedUrl = parentName ? parseUrl(parentName, baseUrl, projectMap.libMount) : null;
+        const pkgMainFilePath = resolveAsPackage(projectMap, baseUrl, parsedSource, parsedParent, noJSExtension);
         if(pkgMainFilePath) {
-            return pkgMainFilePath;
+            return normalizeTail(pkgMainFilePath, noJSExtension);
         } else {
-            return normalizeTail(name, noJSExtension);
+            return normalizeTail(normalizedNamed, noJSExtension);
         }
     }
 }
 
+export function applyFileRemapping(projectMap: ProjectMap, url: ParsedUrl): string {
+    const origPath = joinUrl(url.pkgPath, url.localPath);
+    if(url.pkg && url.pkg in projectMap.packages) {
+        const pkgRec = projectMap.packages[url.pkg];
+        if(url.localPath === '') {
+            const remappedMainFile = remapFile({
+                pkg: '',
+                localPath: pkgRec.m,
+                ext: getExt(url.localPath)
+            }, pkgRec);
+            if(remappedMainFile) {
+                return joinUrl(url.pkgPath, remappedMainFile.localPath);
+            } else {
+                return joinUrl(url.pkgPath, pkgRec.m);
+            }
+        } else {
+            const remappedSource: ParsedSource = remapFile(url, pkgRec);
+            if(remappedSource) {
+                return joinUrl(url.pkgPath, remappedSource.localPath.slice(2));
+            } else {
+                return origPath;
+            }
+        }
+    } else {
+        return origPath;
+    }
+}
+
 export function postProcess(projectMap: ProjectMap, baseUrl: string, resolvedName: string, noJSExtension?:RegExp): string {
-	const packageRec = projectMap.packages[resolvedName];
     const filePath: string = resolvedName.slice(baseUrl.length);
     if(isDefaultIndexDir(projectMap, '/' + filePath)) {
         return joinUrl(baseUrl, stripJsExt(filePath), 'index.js');
     } else {
-        if(getExt(resolvedName) === '') {
-            const pkgs = extractPackageNames(baseUrl, 'lib', resolvedName);
-            if (pkgs.length > 0) {
-                const pkgMainFilePath = resolveAsPackage(projectMap, pkgs[pkgs.length - 1], noJSExtension);
-                if (pkgMainFilePath) {
-                    return joinUrl(baseUrl, pkgMainFilePath);
-                }
-            }
-        }
-        return normalizeTail(resolvedName, noJSExtension);
+        const url: ParsedUrl = parseUrl(resolvedName, baseUrl, projectMap.libMount);
+        const remappedFile: string = normalizeTail(applyFileRemapping(projectMap, url), noJSExtension);
+        return joinUrl(baseUrl, remappedFile);
     }
 }

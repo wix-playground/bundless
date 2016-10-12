@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "bluebird": "registry:npm/bluebird#3.3.4+20160723033700",
+    "chai-as-promised": "registry:npm/chai-as-promised#5.1.0+20160310030142",
     "lodash": "registry:npm/lodash#4.0.0+20160723033700",
     "mime": "registry:npm/mime#1.3.0+20160723033700",
     "object-assign": "registry:npm/object-assign#4.0.1+20160301180549",

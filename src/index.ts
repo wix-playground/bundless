@@ -25,7 +25,7 @@ export function generateBootstrapScript(options: BootstrapScriptOptions = {}, sy
         defaultJSExtensions: false,
         meta: {
             [bootstrapOptions.nodeMount.slice(1) + '/*']: {
-                deps: [bootstrapOptions.nodeMount + '/' + nodeSupport.globals]
+                deps: [nodeSupport.globals]
             },
             '*': {
                 format: 'cjs'

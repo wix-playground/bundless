@@ -29,12 +29,10 @@ function finish(result, errors) {
 }
 
 
-
 const config = karma.config;
-const hostname = 'http://' + config.host + ':' + config.port.toString();
 karma.info({ total: 1 });
 karma.start = function () {
-    loadScript(hostname + '/$bundless')
+    loadScript(`${config.baseURL}$bundless`)
         .then(() => {
             System.config({ baseURL: config.baseURL });
             window['$bundless'](System);

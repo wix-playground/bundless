@@ -23,12 +23,12 @@ const defaultServerOptions: StaticServerOptions = {
     debug: false
 };
 
-export function startStaticServer(host: string, port: number, topologyOverrides: Topology, options: StaticServerOptions = defaultServerOptions): Promise<Server> {
+export function startStaticServer(host: string, port: number, basePath: string, topologyOverrides: Topology, options: StaticServerOptions = defaultServerOptions): Promise<Server> {
     const app: Application = express();
     if(options.debug) {
         app.use(log());
     }
-    app.use(bundlessExpress(topologyOverrides));
+    app.use(basePath, bundlessExpress(topologyOverrides));
     return new Promise<Server>((resolve, reject) => {
         app.listen(port, host, function (err) {
             if(err) {
