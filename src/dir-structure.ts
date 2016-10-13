@@ -49,7 +49,9 @@ function collect(rootDir: string, parent: DirInfo = null, exclude: string[] = []
                     item.content = JSON.parse(
                         fs.readFileSync(rootDir).toString()
                     );
-                } catch (err) {}
+                } catch (err) {
+                    item.content = {};
+                }
             }
             return item;
         } else {

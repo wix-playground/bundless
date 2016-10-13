@@ -34,6 +34,8 @@ export function setupProject(srcDir: string): PackageBuilder {
         .addFile('foo/bar/baz/qux.js', 'var bar = require("..");')
         .addPackage('pkgY').addMainFile('y.js', '');
 
+    project.addFile('node_modules/brokenPkg/package.json', 'some_garbage_but_bundless_should_cope #$%@^');
+
 
     return project;
 }
