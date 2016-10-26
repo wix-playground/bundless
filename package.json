@@ -43,7 +43,7 @@
     "mocha": "3.1.2",
     "mocha-env-reporter": "2.0.4",
     "mocha-loader": "1.0.0",
-    "portfinder": "1.0.8",
+    "portfinder": "1.0.9",
     "rimraf": "2.5.4",
     "source-map-support": "0.4.5",
     "tmp": "0.0.29",
@@ -53,6 +53,6 @@
   "dependencies": {
     "lodash": "4.16.4",
     "semver": "5.3.0",
-    "systemjs": "0.19.39"
+    "systemjs": "0.19.40"
   }
 }
