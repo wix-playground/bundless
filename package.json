@@ -1,6 +1,6 @@
 {
   "name": "bundless",
-  "version": "0.0.68",
+  "version": "0.0.69",
   "description": "Experimental bundle-free dependency loader",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
