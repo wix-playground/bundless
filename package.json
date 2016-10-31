@@ -1,6 +1,6 @@
 {
   "name": "bundless",
-  "version": "0.0.70",
+  "version": "0.0.71",
   "description": "Experimental bundle-free dependency loader",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -43,16 +43,16 @@
     "mocha": "3.1.2",
     "mocha-env-reporter": "2.0.4",
     "mocha-loader": "1.0.0",
-    "npminject": "1.0.78",
+    "npminject": "1.0.79",
     "portfinder": "1.0.9",
     "rimraf": "2.5.4",
-    "source-map-support": "0.4.5",
+    "source-map-support": "0.4.6",
     "tmp": "0.0.29",
     "typescript": "1.8.10",
     "typings": "1.5.0"
   },
   "dependencies": {
-    "lodash": "4.16.4",
+    "lodash": "4.16.5",
     "semver": "5.3.0",
     "systemjs": "0.19.40"
   }
