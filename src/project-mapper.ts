@@ -174,7 +174,7 @@ function getNodeLibMap(nodeMount: string, nodeLibStructure: DirInfo): ProjectMap
 function mergeProjectMaps(map1: ProjectMap, map2: ProjectMap): ProjectMap {
     return {
         libMount: map1.libMount,
-        packages: _.assign<any, PackageDict, PackageDict, PackageDict>({}, map1.packages, map2.packages),
+        packages: _.assign<PackageDict>({}, map1.packages, map2.packages),
         dirs: map1.dirs.concat(map2.dirs)
     };
 }

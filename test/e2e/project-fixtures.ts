@@ -2,7 +2,6 @@ import {PackageBuilder, default as projectDriver} from "../../test-kit/project-d
 import tmp = require('tmp');
 import {SynchrounousResult} from "tmp";
 import {supportedLibs} from "../../src/node-support";
-import {Topology} from "../../sample-server";
 
 
 export function setupProject(srcDir: string): PackageBuilder {

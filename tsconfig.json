@@ -1,13 +1,13 @@
 {
-  "compilerOptions": {
-	"declaration": true,
-	"module": "commonjs",
-	"sourceMap": true,
-	"target": "ES5",
-	"outDir": "dist"
-  },
-  "exclude": [
-	"node_modules",
-	"dist"
-  ]
+	"compilerOptions": {
+		"target": "es2015",
+		"module": "commonjs",
+		"declaration": true,
+		"sourceMap": true,
+		"outDir": "dist"
+	},
+	"exclude": [
+		"node_modules",
+		"dist"
+	]
 }
