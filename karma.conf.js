@@ -67,7 +67,8 @@ module.exports = function(config) {
                 flags: ['--disable-web-security', '--ignore-certificate-errors']
             }
         },
-
+        
+        browserNoActivityTimeout: 1000000,
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits
