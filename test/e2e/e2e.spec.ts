@@ -12,7 +12,7 @@ import {findPort} from "../../test-kit/port";
 const host = 'localhost';
 
 describe('Bundless', function () {
-    this.timeout(30000);
+    this.timeout(60000);
 
 
     ['/', '/complex/path/'].forEach((basePath) => {
