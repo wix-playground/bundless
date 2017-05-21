@@ -20,7 +20,7 @@
     "build": "npm run clean && tsc",
     "prestart": "npm run build",
     "start": "node dist/src/index.js",
-    "postinstall": "cd node-libs && npm install"
+    "install": "cd node-libs && npm install"
   },
   "repository": {
     "type": "git",

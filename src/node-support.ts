@@ -45,7 +45,7 @@ export type AliasDict = { [alias: string]: AliasValue }
 export const aliases: AliasDict = {
     "console": "console-browserify",
     "constants": "constants-browserify",
-    "crypto": "crypto-browserify",
+    // "crypto": "crypto-browserify",
     "domain": "domain-browser",
     "http": "http-browserify",
     "https": "https-browserify",
@@ -63,6 +63,7 @@ export const aliases: AliasDict = {
     // stubs:
     "child_process": null,
     "cluster": null,
+    "crypto": null,
     "dgram": null,
     "dns": null,
     "fs": null,
