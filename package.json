@@ -52,15 +52,15 @@
     "rimraf": "2.6.1",
     "source-map-support": "0.4.15",
     "tmp": "0.0.31",
-    "typescript": "2.3.3"
+    "typescript": "2.3.4"
   },
   "dependencies": {
     "@types/lodash": "4.14.65",
     "@types/node": "7.0.27",
     "@types/semver": "5.3.31",
-    "@types/systemjs": "0.19.32",
+    "@types/systemjs": "0.20.2",
     "lodash": "4.17.4",
     "semver": "5.3.0",
-    "systemjs": "0.19.41"
+    "systemjs": "0.19.43"
   }
 }
