@@ -76,10 +76,22 @@ function resolvePackageJsonMainFile(dirInfo: DirInfo): string {
     }
 }
 
+function resolve<T>(...resolvers: Array<() => T>): T {
+    for(let resolver of resolvers) {
+        const result = resolver.call(null);
+        if(!(result === undefined || result === null)) {
+            return result;
+        }
+    }
+    return null;
+}
+
 function resolveMainPkgFile(dirInfo: DirInfo): string {
-    return resolveJspmMainFile(dirInfo) ||
-        resolvePackageJsonMainFile(dirInfo) ||
-        'index.js';
+    return resolve<string>(
+        () => resolveJspmMainFile(dirInfo),
+        () => resolvePackageJsonMainFile(dirInfo),
+        () => 'index.js'
+    );
 }
 
 interface PackageDictOptions {
@@ -106,12 +118,14 @@ function buildPkgDict(dirInfo: DirInfo, libMount: string, options: PackageDictOp
         const pkg: DirInfo = pkgDict[pkgName];
         const pkgPath = libMount + pkg.path.slice(dirInfo.path.length);
         const mainFilePath = resolveMainPkgFile(pkg);
-        const remapping: FileRemapping = resolveFileRemapping(pkg);
-        const pkgRec: PackageRec = { p: pkgPath, m: mainFilePath };
-        if(remapping) {
-            pkgRec.r = remapping;
+        if(mainFilePath) {
+            const remapping: FileRemapping = resolveFileRemapping(pkg);
+            const pkgRec: PackageRec = { p: pkgPath, m: mainFilePath };
+            if(remapping) {
+                pkgRec.r = remapping;
+            }
+            finalDict[pkgName] = pkgRec;
         }
-        finalDict[pkgName] = pkgRec;
     }
     
     return finalDict;

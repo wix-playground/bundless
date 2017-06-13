@@ -47,6 +47,9 @@ describe('Project Mapper', function () {
                         }
                     });
 
+            project
+                .addPackage('phoney').addToPackageJson({ main: ''});
+
             projectMap = getProjectMap(generateProjectInfo(topology));
         });
 
@@ -58,6 +61,10 @@ describe('Project Mapper', function () {
                 'sol': { p: '/lib/sol', m: 'la/si/do.js' },
                 'do':  { p: '/lib/do', m: 'index.js', r: { './bus.js': './sub.js' } }
             });
+        });
+
+        it('ignores files with no main file', function () {
+            expect(projectMap.packages).not.to.have.property('phoney');
         });
     });
 
