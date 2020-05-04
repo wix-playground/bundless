@@ -20,7 +20,9 @@
     "build": "npm run clean && tsc",
     "prestart": "npm run build",
     "start": "node dist/src/index.js",
-    "install": "cd node-libs && npm install"
+    "install": "cd node-libs && npm install",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -61,6 +63,8 @@
     "@types/systemjs": "0.20.2",
     "lodash": "4.17.4",
     "semver": "5.3.0",
-    "systemjs": "0.19.43"
-  }
+    "systemjs": "0.19.43",
+    "snyk": "^1.317.0"
+  },
+  "snyk": true
 }
